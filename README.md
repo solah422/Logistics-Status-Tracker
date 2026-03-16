@@ -1,70 +1,115 @@
-# Logistics Status Tracking App
+# 📦 LogiTrack Pro
 
-A comprehensive, feature-rich logistics and package tracking application built with React, TypeScript, and Tailwind CSS.
+> **The ultimate command center for modern logistics and package management.**
 
-## Features
+LogiTrack Pro is a state-of-the-art, fully responsive React application designed to streamline package tracking, optimize operational workflows, and provide real-time analytics for logistics teams. Built with performance and user experience in mind, it transforms complex supply chain data into actionable, beautifully visualized insights.
 
-- **Package Management**: Create, read, update, and soft-delete packages.
-- **Kanban Board View**: Drag-and-drop packages between status columns for visual workflow management.
-- **Customizable Dashboard**: A dynamic dashboard with 15+ draggable, resizable widgets (charts, stats, weather, news, etc.).
-- **Context Menus**: Right-click on package rows for quick actions like Edit, Copy Tracking, Delete, and Status Change.
-- **Priority Indicators**: Color-coded visual cues for package priority levels (Low, Medium, High, Urgent).
-- **Collapsible Table Rows**: Expand rows to see full package details, notes, and history without leaving the list view.
-- **Status Tracking**: Track package statuses with a detailed history and enhanced visual progress steppers.
-- **Inline Editing**: Quickly edit package dates (submitted, released) and statuses directly from the list view.
-- **Advanced Filtering**: Filter by status, date ranges, and document availability. Save custom filter views.
-- **Custom Fields**: Dynamically add and manage custom fields for packages.
-- **Google Drive Sync**: Sync your database with a JSON file hosted on Google Drive using the File System Access API.
-- **Import/Export**: Drag-and-drop support for CSV and JSON file imports and exports.
-- **Automated Archiving**: Automatically archive packages that have reached their final status.
-- **UI/UX Enhancements**: Full dark mode support with theme toggle, skeleton loaders, toast notifications, collapsible sidebar, and mobile-optimized card views.
+---
 
-## Tech Stack
+## ✨ Key Features
 
-- **Frontend**: React 18, TypeScript, Vite
-- **Styling**: Tailwind CSS
-- **Icons**: Lucide React
-- **Charts**: Recharts
-- **Storage**: LocalStorage & IndexedDB (`idb-keyval`) for local persistence and Drive sync handles.
+### 🧩 Fully Customizable Dashboard
+Your workspace, your rules. The dashboard is powered by a robust drag-and-drop engine (`@dnd-kit`).
+- **Drag & Drop**: Rearrange widgets to suit your daily workflow.
+- **Resizable Widgets**: Toggle widgets between Small, Medium, and Large footprints.
+- **Rich Widget Library**: Includes Total Packages, Recent Activity, Live Weather, Quick Notes, Logistics News, Priority Breakdowns, and Upcoming Deadlines.
 
-## Getting Started
+### 📋 Omni-View Package Management
+Visualize your freight exactly how you want to.
+- **Data Table View**: High-density, sortable, and filterable list for power users. Includes inline editing and collapsible rows with a visual **Progress Stepper**.
+- **Kanban Board View**: Drag-and-drop cards across status columns for a visual pipeline of your operations.
+- **Context Menus**: Right-click any package to instantly Edit, Copy Tracking, Change Status, or Delete without opening a modal.
+- **Priority Indicators**: Color-coded visual cues (Low, Medium, High, Urgent) ensure critical shipments never slip through the cracks.
+
+### 📊 Intelligent Reporting & Analytics
+Turn raw data into strategic decisions.
+- **Interactive Charts**: Beautiful, responsive pie and bar charts powered by `recharts`.
+- **Performance Metrics**: Track average processing times and status distributions.
+- **One-Click PDF Export**: Generate professional, formatted PDF reports of your current data instantly using `html2canvas` and `jsPDF`.
+
+### ☁️ Advanced Sync & Automation
+- **Google Drive Integration**: Seamlessly import and export your entire database to Google Drive for secure, decentralized backups.
+- **Automated Archiving**: Keep your active workspace clean with smart auto-archiving for completed or cancelled shipments.
+- **Custom Fields**: Extend the data model on the fly with custom text, number, date, or dropdown fields.
+
+---
+
+## 🛠️ Tech Stack
+
+LogiTrack Pro is built on a modern, type-safe foundation:
+
+*   **Core**: React 18, TypeScript, Vite
+*   **Styling**: Tailwind CSS (with Dark Mode support)
+*   **Drag & Drop**: `@dnd-kit/core`, `@dnd-kit/sortable`
+*   **Data Visualization**: `recharts`
+*   **Icons**: `lucide-react`
+*   **Utilities**: `date-fns` (time manipulation), `html2canvas` & `jspdf` (reporting)
+
+---
+
+## 🚀 Getting Started
 
 ### Prerequisites
-
-- Node.js (v18 or higher recommended)
-- npm or yarn
+Ensure you have [Node.js](https://nodejs.org/) (v18+) and `npm` installed.
 
 ### Installation
 
-1. Clone the repository:
+1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/your-org/logitap-pro.git
+   cd logitap-pro
    ```
-2. Navigate to the project directory:
-   ```bash
-   cd <project-directory>
-   ```
-3. Install dependencies:
+
+2. **Install dependencies**
    ```bash
    npm install
    ```
 
-### Development
+3. **Start the development server**
+   ```bash
+   npm run dev
+   ```
 
-Start the development server:
+4. Open your browser and navigate to `http://localhost:3000`.
 
-```bash
-npm run dev
-```
+---
 
-### Build
+## 💡 Usage Guide
 
-Build the application for production:
+### Customizing the Dashboard
+1. Navigate to the **Dashboard** tab.
+2. Click the **Customize** button in the top right.
+3. Use the grip icon (⋮⋮) to drag widgets around.
+4. Hover over a widget's header to reveal the resize buttons (S, M, L) and the remove (X) button.
+5. Click **Done** to save your layout to local storage.
 
-```bash
-npm run build
-```
+### Using the Kanban Board
+1. Navigate to the **Packages** tab.
+2. Click the **Board** icon (layout-dashboard) in the top right view toggle.
+3. Drag package cards between columns to instantly update their status.
+4. Notice the color-coded left border on cards indicating priority (Red = Urgent, Amber = High, Blue = Medium, Gray = Low).
 
-## License
+### Generating Reports
+1. Navigate to the **Reports** tab.
+2. Use the **Date Range** filter to scope your data (e.g., "Last 30 Days").
+3. Click **Export PDF** to generate a downloadable snapshot of your charts and metrics.
 
-MIT
+---
+
+## 🤝 Contributing
+
+We welcome contributions to make LogiTrack Pro even better! 
+1. Fork the project.
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`).
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`).
+4. Push to the branch (`git push origin feature/AmazingFeature`).
+5. Open a Pull Request.
+
+---
+
+## 📄 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+---
+*Built with ❤️ for logistics professionals everywhere.*
