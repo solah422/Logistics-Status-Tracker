@@ -32,6 +32,7 @@ export interface Package {
   dateReleased?: string; // ISO date
   
   status: Status;
+  priority?: 'low' | 'medium' | 'high' | 'urgent';
   
   // Conditional fields based on status
   expectedDutyAmount?: number; // For 'Customs Processed'

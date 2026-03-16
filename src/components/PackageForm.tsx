@@ -16,6 +16,7 @@ export const PackageForm = ({ initialData, onClose }: PackageFormProps) => {
     dateSubmitted: '',
     dateReleased: '',
     status: 'Pending',
+    priority: 'medium',
     documentsUploaded: false,
     readySystemStatusUpdated: false,
     brokerFormStatus: '',
@@ -153,7 +154,7 @@ export const PackageForm = ({ initialData, onClose }: PackageFormProps) => {
         </div>
 
         {/* Status */}
-        <div className="space-y-2 md:col-span-2">
+        <div className="space-y-2">
           <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Status <span className="text-rose-500">*</span></label>
           <select
             name="status"
@@ -165,6 +166,22 @@ export const PackageForm = ({ initialData, onClose }: PackageFormProps) => {
             {statuses.map(s => (
               <option key={s} value={s} className="bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">{s}</option>
             ))}
+          </select>
+        </div>
+
+        {/* Priority */}
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Priority</label>
+          <select
+            name="priority"
+            value={formData.priority || 'medium'}
+            onChange={handleChange}
+            className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all dark:text-zinc-100"
+          >
+            <option value="low" className="bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">Low</option>
+            <option value="medium" className="bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">Medium</option>
+            <option value="high" className="bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">High</option>
+            <option value="urgent" className="bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">Urgent</option>
           </select>
         </div>
 

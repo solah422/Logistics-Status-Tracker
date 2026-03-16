@@ -5,7 +5,12 @@ A comprehensive, feature-rich logistics and package tracking application built w
 ## Features
 
 - **Package Management**: Create, read, update, and soft-delete packages.
-- **Status Tracking**: Track package statuses with a detailed history and visual progress steppers.
+- **Kanban Board View**: Drag-and-drop packages between status columns for visual workflow management.
+- **Customizable Dashboard**: A dynamic dashboard with 15+ draggable, resizable widgets (charts, stats, weather, news, etc.).
+- **Context Menus**: Right-click on package rows for quick actions like Edit, Copy Tracking, Delete, and Status Change.
+- **Priority Indicators**: Color-coded visual cues for package priority levels (Low, Medium, High, Urgent).
+- **Collapsible Table Rows**: Expand rows to see full package details, notes, and history without leaving the list view.
+- **Status Tracking**: Track package statuses with a detailed history and enhanced visual progress steppers.
 - **Inline Editing**: Quickly edit package dates (submitted, released) and statuses directly from the list view.
 - **Advanced Filtering**: Filter by status, date ranges, and document availability. Save custom filter views.
 - **Custom Fields**: Dynamically add and manage custom fields for packages.
