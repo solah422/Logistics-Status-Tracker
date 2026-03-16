@@ -411,7 +411,12 @@ export const Dashboard = () => {
         return (
           <div className="h-full min-h-[150px]">
             {priorityData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer
+                width="100%"
+                height="100%"
+                minWidth={0}
+                minHeight={0}
+              >
                 <RechartsPieChart>
                   <Pie
                     data={priorityData}
@@ -439,7 +444,12 @@ export const Dashboard = () => {
       case "statusChart":
         return (
           <div className="h-full min-h-[200px]">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer
+              width="100%"
+              height="100%"
+              minWidth={0}
+              minHeight={0}
+            >
               <RechartsBarChart
                 data={statusData}
                 margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
