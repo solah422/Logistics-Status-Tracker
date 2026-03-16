@@ -4,12 +4,12 @@ import { FINAL_STATUSES } from '../types';
 import { PackageSearch, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
 
 export const Dashboard = () => {
-  const { packages } = usePackages();
+  const { activePackages } = usePackages();
 
-  const total = packages.length;
-  const completed = packages.filter(p => FINAL_STATUSES.includes(p.status)).length;
-  const pending = packages.filter(p => p.status === 'Pending').length;
-  const actionRequired = packages.filter(p => 
+  const total = activePackages.length;
+  const completed = activePackages.filter(p => FINAL_STATUSES.includes(p.status)).length;
+  const pending = activePackages.filter(p => p.status === 'Pending').length;
+  const actionRequired = activePackages.filter(p => 
     p.status === 'Clarification Required' || 
     p.status === 'Customs Processed' // Needs payment
   ).length;
@@ -43,7 +43,7 @@ export const Dashboard = () => {
       <div className="bg-white rounded-xl shadow-sm border border-zinc-200 p-6">
         <h2 className="text-lg font-semibold text-zinc-900 mb-4">Recent Activity</h2>
         <div className="space-y-4">
-          {packages.slice(0, 5).map(pkg => (
+          {activePackages.slice(0, 5).map(pkg => (
             <div key={pkg.id} className="flex items-center justify-between py-3 border-b border-zinc-100 last:border-0">
               <div>
                 <p className="font-medium text-zinc-900">{pkg.rNumberIdNumber || pkg.trackingNumber}</p>
@@ -54,7 +54,7 @@ export const Dashboard = () => {
               </span>
             </div>
           ))}
-          {packages.length === 0 && (
+          {activePackages.length === 0 && (
             <p className="text-zinc-500 text-sm text-center py-4">No packages found. Add one to get started.</p>
           )}
         </div>

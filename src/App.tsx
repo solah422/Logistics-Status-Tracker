@@ -11,6 +11,7 @@ import { PackageList } from './components/PackageList';
 import { ImportExport } from './components/ImportExport';
 import { Reports } from './components/Reports';
 import { Settings } from './components/Settings';
+import { DeletedPackages } from './components/DeletedPackages';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -25,6 +26,8 @@ export default function App() {
         return <ImportExport />;
       case 'reports':
         return <Reports />;
+      case 'deleted':
+        return <DeletedPackages />;
       case 'settings':
         return <Settings />;
       default:

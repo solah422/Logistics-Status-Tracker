@@ -1,20 +1,65 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Logistics Status Tracking App
 
-# Run and deploy your AI Studio app
+A comprehensive, feature-rich logistics and package tracking application built with React, TypeScript, and Tailwind CSS.
 
-This contains everything you need to run your app locally.
+## Features
 
-View your app in AI Studio: https://ai.studio/apps/19655ba2-7f0a-4e75-83f8-ccc5e9fc8778
+- **Package Management**: Create, read, update, and soft-delete packages.
+- **Status Tracking**: Track package statuses with a detailed history and visual progress steppers.
+- **Inline Editing**: Quickly edit package details (tracking numbers, dates, statuses) directly from the list view.
+- **Advanced Filtering**: Filter by status, date ranges, and document availability. Save custom filter views.
+- **Custom Fields**: Dynamically add and manage custom fields for packages.
+- **Google Drive Sync**: Sync your database with a JSON file hosted on Google Drive using the File System Access API.
+- **Import/Export**: Drag-and-drop support for CSV and JSON file imports and exports.
+- **Automated Archiving**: Automatically archive packages that have reached their final status.
+- **UI/UX Enhancements**: Dark mode, skeleton loaders, toast notifications, collapsible sidebar, and mobile-optimized card views.
 
-## Run Locally
+## Tech Stack
 
-**Prerequisites:**  Node.js
+- **Frontend**: React 18, TypeScript, Vite
+- **Styling**: Tailwind CSS
+- **Icons**: Lucide React
+- **Charts**: Recharts
+- **Storage**: LocalStorage & IndexedDB (`idb-keyval`) for local persistence and Drive sync handles.
 
+## Getting Started
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+### Prerequisites
+
+- Node.js (v18 or higher recommended)
+- npm or yarn
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   ```
+2. Navigate to the project directory:
+   ```bash
+   cd <project-directory>
+   ```
+3. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+### Development
+
+Start the development server:
+
+```bash
+npm run dev
+```
+
+### Build
+
+Build the application for production:
+
+```bash
+npm run build
+```
+
+## License
+
+MIT

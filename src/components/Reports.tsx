@@ -6,18 +6,18 @@ import { differenceInDays, parseISO } from 'date-fns';
 const COLORS = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#f97316', '#64748b'];
 
 export const Reports = () => {
-  const { packages } = usePackages();
+  const { activePackages } = usePackages();
 
   const statusData = useMemo(() => {
     const counts: Record<string, number> = {};
-    packages.forEach(pkg => {
+    activePackages.forEach(pkg => {
       counts[pkg.status] = (counts[pkg.status] || 0) + 1;
     });
     return Object.entries(counts).map(([name, value]) => ({ name, value }));
-  }, [packages]);
+  }, [activePackages]);
 
   const timelineData = useMemo(() => {
-    const completedPackages = packages.filter(p => p.dateSubmitted && p.dateReleased);
+    const completedPackages = activePackages.filter(p => p.dateSubmitted && p.dateReleased);
     
     // Group by processing time (days)
     const timeDistribution: Record<string, number> = {
@@ -36,7 +36,7 @@ export const Reports = () => {
     });
 
     return Object.entries(timeDistribution).map(([name, value]) => ({ name, value }));
-  }, [packages]);
+  }, [activePackages]);
 
   return (
     <div className="space-y-6">
@@ -45,7 +45,7 @@ export const Reports = () => {
         <div className="bg-white p-6 rounded-xl shadow-sm border border-zinc-200">
           <h2 className="text-lg font-semibold text-zinc-900 mb-6">Current Status Distribution</h2>
           <div className="h-80 w-full">
-            {packages.length > 0 ? (
+            {activePackages.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -77,7 +77,7 @@ export const Reports = () => {
         <div className="bg-white p-6 rounded-xl shadow-sm border border-zinc-200">
           <h2 className="text-lg font-semibold text-zinc-900 mb-6">Processing Time (Submitted to Released)</h2>
           <div className="h-80 w-full">
-            {packages.filter(p => p.dateSubmitted && p.dateReleased).length > 0 ? (
+            {activePackages.filter(p => p.dateSubmitted && p.dateReleased).length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={timelineData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e4e4e7" />
