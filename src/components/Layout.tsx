@@ -39,7 +39,7 @@ export const Layout = ({ children, activeTab, setActiveTab }: LayoutProps) => {
         sidebarCollapsed ? "w-20" : "w-64"
       )}>
         <div className="h-16 flex items-center justify-between px-4 bg-zinc-950 dark:bg-[#111]">
-          {!sidebarCollapsed && <span className="text-white font-semibold text-lg tracking-tight truncate">Logistics Tracker</span>}
+          {!sidebarCollapsed && <span className="text-white font-semibold text-lg tracking-tight truncate">LogiTrack Pro</span>}
           {sidebarCollapsed && <PackageSearch className="text-white mx-auto" size={24} />}
           <button className="lg:hidden text-zinc-400 hover:text-white" onClick={() => setMobileSidebarOpen(false)}>
             <X size={20} />

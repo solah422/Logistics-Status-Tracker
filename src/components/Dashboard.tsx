@@ -6,8 +6,6 @@ import {
   CheckCircle2,
   AlertCircle,
   Clock,
-  Cloud,
-  Globe,
   Activity,
 } from "lucide-react";
 import {
@@ -243,7 +241,7 @@ export const Dashboard = () => {
                         new Date(b.updatedAt).getTime() -
                         new Date(a.updatedAt).getTime(),
                     )
-                    .slice(0, 5)
+                    .slice(0, 10)
                     .map((pkg) => (
                       <div
                         key={pkg.id}
@@ -268,48 +266,6 @@ export const Dashboard = () => {
               )}
             </div>
           </div>
-
-          <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-800 overflow-hidden">
-            <div className="p-4 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/50">
-              <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-                <Globe size={18} className="text-indigo-500" />
-                Logistics News
-              </h3>
-            </div>
-            <div className="p-4">
-              <ul className="space-y-3 text-sm text-zinc-700 dark:text-zinc-300">
-                <li className="flex gap-2">
-                  <div className="w-1.5 h-1.5 mt-1.5 rounded-full bg-zinc-300 dark:bg-zinc-600 shrink-0" />
-                  <span>Global shipping rates stabilize after Q1 surge.</span>
-                </li>
-                <li className="flex gap-2">
-                  <div className="w-1.5 h-1.5 mt-1.5 rounded-full bg-zinc-300 dark:bg-zinc-600 shrink-0" />
-                  <span>New customs regulations for EU imports starting next month.</span>
-                </li>
-                <li className="flex gap-2">
-                  <div className="w-1.5 h-1.5 mt-1.5 rounded-full bg-zinc-300 dark:bg-zinc-600 shrink-0" />
-                  <span>Port congestion eases in major Asian hubs.</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-800 overflow-hidden">
-            <div className="p-4 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/50">
-              <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-                <Cloud size={18} className="text-blue-500" />
-                Weather Overview
-              </h3>
-            </div>
-            <div className="p-6 flex items-center justify-center gap-4 text-zinc-700 dark:text-zinc-300">
-              <Cloud size={48} className="text-blue-400" />
-              <div>
-                <p className="text-3xl font-bold">24°C</p>
-                <p className="text-sm text-zinc-500">Partly Cloudy</p>
-              </div>
-            </div>
-          </div>
-
         </div>
       </div>
     </div>

@@ -21,7 +21,6 @@ import {
   startOfMonth,
 } from "date-fns";
 import { Download, Filter } from "lucide-react";
-import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 
