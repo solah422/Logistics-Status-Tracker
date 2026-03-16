@@ -1,18 +1,27 @@
 # 📦 LogiTrack Pro
 
+[![React](https://img.shields.io/badge/React-18-blue.svg)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/)
+[![Vite](https://img.shields.io/badge/Vite-5.0-purple.svg)](https://vitejs.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC.svg)](https://tailwindcss.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 > **The ultimate command center for modern logistics and package management.**
 
 LogiTrack Pro is a state-of-the-art, fully responsive React application designed to streamline package tracking, optimize operational workflows, and provide real-time analytics for logistics teams. Built with performance and user experience in mind, it transforms complex supply chain data into actionable, beautifully visualized insights.
+
+![LogiTrack Pro Banner](https://images.unsplash.com/photo-1586528116311-ad8ed7c663c0?auto=format&fit=crop&q=80&w=2000&h=600)
 
 ---
 
 ## ✨ Key Features
 
-### 🧩 Fully Customizable Dashboard
-Your workspace, your rules. The dashboard is powered by a robust drag-and-drop engine (`@dnd-kit`).
-- **Drag & Drop**: Rearrange widgets to suit your daily workflow.
-- **Resizable Widgets**: Toggle widgets between Small, Medium, and Large footprints.
-- **Rich Widget Library**: Includes Total Packages, Recent Activity, Live Weather, Quick Notes, Logistics News, Priority Breakdowns, and Upcoming Deadlines.
+### 🧩 Intelligent Dashboard
+Your workspace, optimized for clarity. The dashboard provides a high-level overview of your entire operation at a glance.
+- **Real-Time Metrics**: Instantly view Total Packages, Completed, Pending, and Action Required shipments.
+- **Visual Analytics**: Beautiful, responsive pie and bar charts powered by `recharts` for status distribution and priority breakdowns.
+- **Activity Feed**: Keep track of the latest updates and movements in your supply chain.
+- **Quick Notes**: A persistent scratchpad for jotting down important reminders or tracking numbers.
 
 ### 📋 Omni-View Package Management
 Visualize your freight exactly how you want to.
@@ -21,14 +30,13 @@ Visualize your freight exactly how you want to.
 - **Context Menus**: Right-click any package to instantly Edit, Copy Tracking, Change Status, or Delete without opening a modal.
 - **Priority Indicators**: Color-coded visual cues (Low, Medium, High, Urgent) ensure critical shipments never slip through the cracks.
 
-### 📊 Intelligent Reporting & Analytics
+### 📊 Professional Reporting & Analytics
 Turn raw data into strategic decisions.
-- **Interactive Charts**: Beautiful, responsive pie and bar charts powered by `recharts`.
-- **Performance Metrics**: Track average processing times and status distributions.
-- **One-Click PDF Export**: Generate professional, formatted PDF reports of your current data instantly using `html2canvas` and `jsPDF`.
+- **Interactive Charts**: Dive deep into processing times and performance metrics.
+- **Structured PDF Export**: Generate professional, multi-page PDF reports instantly using `jsPDF` and `jspdf-autotable`. Reports include summary statistics, status distributions, processing times, and a complete tabular breakdown of all filtered packages.
 
 ### ☁️ Advanced Sync & Automation
-- **Google Drive Integration**: Seamlessly import and export your entire database to Google Drive for secure, decentralized backups.
+- **First-Launch Cloud Sync**: Seamlessly link your application to an existing Google Drive JSON database on your very first launch using the File System Access API, ensuring you pick up right where you left off.
 - **Automated Archiving**: Keep your active workspace clean with smart auto-archiving for completed or cancelled shipments.
 - **Custom Fields**: Extend the data model on the fly with custom text, number, date, or dropdown fields.
 
@@ -40,10 +48,10 @@ LogiTrack Pro is built on a modern, type-safe foundation:
 
 *   **Core**: React 18, TypeScript, Vite
 *   **Styling**: Tailwind CSS (with Dark Mode support)
-*   **Drag & Drop**: `@dnd-kit/core`, `@dnd-kit/sortable`
 *   **Data Visualization**: `recharts`
 *   **Icons**: `lucide-react`
-*   **Utilities**: `date-fns` (time manipulation), `html2canvas` & `jspdf` (reporting)
+*   **Utilities**: `date-fns` (time manipulation), `jspdf` & `jspdf-autotable` (reporting)
+*   **Storage**: LocalStorage & IndexedDB (`idb-keyval`) for robust offline persistence and file handle management.
 
 ---
 
@@ -74,25 +82,39 @@ Ensure you have [Node.js](https://nodejs.org/) (v18+) and `npm` installed.
 
 ---
 
+## 📁 Project Structure
+
+```text
+src/
+├── components/       # Reusable UI components and main views (Dashboard, Reports, etc.)
+├── store/            # React Context providers for global state management
+├── types/            # TypeScript interface and type definitions
+├── App.tsx           # Main application entry point and routing
+├── index.css         # Global Tailwind CSS imports and custom styles
+└── main.tsx          # React DOM rendering
+```
+
+---
+
 ## 💡 Usage Guide
 
-### Customizing the Dashboard
-1. Navigate to the **Dashboard** tab.
-2. Click the **Customize** button in the top right.
-3. Use the grip icon (⋮⋮) to drag widgets around.
-4. Hover over a widget's header to reveal the resize buttons (S, M, L) and the remove (X) button.
-5. Click **Done** to save your layout to local storage.
+### First Launch & Cloud Sync
+1. Upon opening the app for the first time, you will be greeted by the **Welcome Screen**.
+2. Click **Link Existing Database** to connect a previously exported JSON file (e.g., from your local Google Drive sync folder) using the File System Access API.
+3. Alternatively, click **Start Fresh** to begin with an empty workspace.
 
-### Using the Kanban Board
+### Managing Packages
 1. Navigate to the **Packages** tab.
-2. Click the **Board** icon (layout-dashboard) in the top right view toggle.
-3. Drag package cards between columns to instantly update their status.
-4. Notice the color-coded left border on cards indicating priority (Red = Urgent, Amber = High, Blue = Medium, Gray = Low).
+2. Use the **Add Package** button to create a new shipment.
+3. Toggle between **Table** and **Board** views using the icons in the top right.
+4. In the Board view, drag and drop cards between columns to update their status.
+5. In the Table view, right-click any row to access quick actions like Edit or Delete.
 
-### Generating Reports
+### Generating Professional Reports
 1. Navigate to the **Reports** tab.
 2. Use the **Date Range** filter to scope your data (e.g., "Last 30 Days").
-3. Click **Export PDF** to generate a downloadable snapshot of your charts and metrics.
+3. Review the interactive charts to ensure the data is correct.
+4. Click **Export PDF** to generate a structured, multi-page document containing your summary statistics, charts data, and a full table of the filtered packages.
 
 ---
 

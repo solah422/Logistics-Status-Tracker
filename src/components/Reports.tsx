@@ -23,6 +23,7 @@ import {
 import { Download, Filter } from "lucide-react";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const COLORS = [
   "#4f46e5",
@@ -123,54 +124,113 @@ export const Reports = () => {
   }, [filteredPackages]);
 
   const generatePDF = async () => {
-    if (!reportRef.current) return;
-
     try {
       setIsGeneratingPdf(true);
 
-      // Wait a moment for any UI updates to settle (like charts switching to fixed dimensions)
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      const doc = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
 
-      try {
-        const canvas = await html2canvas(reportRef.current, {
-          scale: 2,
-          backgroundColor: document.documentElement.classList.contains("dark")
-            ? "#18181b"
-            : "#ffffff",
-          logging: false,
-          useCORS: true,
-          allowTaint: true,
-        });
+      const pageWidth = doc.internal.pageSize.getWidth();
+      let yPos = 20;
 
-        if (canvas.width === 0 || canvas.height === 0) {
-          throw new Error(
-            "Failed to capture report content (zero dimensions).",
-          );
-        }
+      // Title
+      doc.setFontSize(24);
+      doc.setTextColor(30, 41, 59); // zinc-800
+      doc.text("Logistics Report", 14, yPos);
+      
+      // Date Range
+      yPos += 8;
+      doc.setFontSize(12);
+      doc.setTextColor(100, 116, 139); // zinc-500
+      const dateRangeText = 
+        dateRange === "all" ? "All Time" :
+        dateRange === "7days" ? "Last 7 Days" :
+        dateRange === "30days" ? "Last 30 Days" : "This Month";
+      doc.text(`Date Range: ${dateRangeText} | Generated: ${new Date().toLocaleDateString()}`, 14, yPos);
 
-        const imgData = canvas.toDataURL("image/png");
+      // Summary Stats
+      yPos += 15;
+      doc.setFontSize(14);
+      doc.setTextColor(30, 41, 59);
+      doc.text("Summary", 14, yPos);
+      
+      yPos += 8;
+      autoTable(doc, {
+        startY: yPos,
+        head: [["Total Packages", "Completed Packages", "Avg. Processing Time"]],
+        body: [[
+          summaryStats.total.toString(),
+          summaryStats.completed.toString(),
+          `${summaryStats.avgProcessingTime} days`
+        ]],
+        theme: "grid",
+        headStyles: { fillColor: [79, 70, 229], textColor: 255 },
+        styles: { fontSize: 12, halign: "center" },
+      });
 
-        const pdf = new jsPDF({
-          orientation: "portrait",
-          unit: "mm",
-          format: "a4",
-        });
+      yPos = (doc as any).lastAutoTable.finalY + 15;
 
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      // Status Distribution Table
+      doc.setFontSize(14);
+      doc.setTextColor(30, 41, 59);
+      doc.text("Status Distribution", 14, yPos);
+      
+      yPos += 8;
+      autoTable(doc, {
+        startY: yPos,
+        head: [["Status", "Count"]],
+        body: statusData.map(d => [d.name, d.count.toString()]),
+        theme: "striped",
+        headStyles: { fillColor: [79, 70, 229], textColor: 255 },
+      });
 
-        pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-        pdf.save(
-          `logistics-report-${new Date().toISOString().split("T")[0]}.pdf`,
-        );
-      } catch (canvasError) {
-        console.warn(
-          "html2canvas failed, falling back to native print:",
-          canvasError,
-        );
-        // Fallback to native print if html2canvas fails (e.g., due to unsupported modern CSS)
-        window.print();
-      }
+      yPos = (doc as any).lastAutoTable.finalY + 15;
+
+      // Processing Time Table
+      doc.setFontSize(14);
+      doc.setTextColor(30, 41, 59);
+      doc.text("Processing Time (Submitted to Released)", 14, yPos);
+      
+      yPos += 8;
+      autoTable(doc, {
+        startY: yPos,
+        head: [["Duration", "Count"]],
+        body: timelineData.map(d => [d.name, d.value.toString()]),
+        theme: "striped",
+        headStyles: { fillColor: [79, 70, 229], textColor: 255 },
+      });
+
+      yPos = (doc as any).lastAutoTable.finalY + 15;
+
+      // Package Details
+      doc.addPage();
+      yPos = 20;
+      doc.setFontSize(14);
+      doc.setTextColor(30, 41, 59);
+      doc.text("Package Details", 14, yPos);
+
+      yPos += 8;
+      const tableData = filteredPackages.map(pkg => [
+        pkg.trackingNumber || "N/A",
+        pkg.status,
+        pkg.priority || "Medium",
+        pkg.dateSubmitted ? new Date(pkg.dateSubmitted).toLocaleDateString() : "N/A",
+        pkg.dateReleased ? new Date(pkg.dateReleased).toLocaleDateString() : "N/A"
+      ]);
+
+      autoTable(doc, {
+        startY: yPos,
+        head: [["Tracking Number", "Status", "Priority", "Submitted", "Released"]],
+        body: tableData,
+        theme: "striped",
+        headStyles: { fillColor: [79, 70, 229], textColor: 255 },
+        styles: { fontSize: 9 },
+      });
+
+      doc.save(`logistics-report-${new Date().toISOString().split("T")[0]}.pdf`);
     } catch (error) {
       console.error("Error generating PDF:", error);
       alert(
@@ -279,8 +339,13 @@ export const Reports = () => {
             </h2>
             <div className="h-80 w-full" style={{ minHeight: 320 }}>
               {filteredPackages.length > 0 ? (
-                isGeneratingPdf ? (
-                  <PieChart width={500} height={320}>
+                <ResponsiveContainer
+                  width="100%"
+                  height="100%"
+                  minWidth={0}
+                  minHeight={320}
+                >
+                  <PieChart>
                     <Pie
                       data={statusData}
                       cx="50%"
@@ -297,43 +362,16 @@ export const Reports = () => {
                         />
                       ))}
                     </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        borderRadius: "8px",
+                        border: "none",
+                        boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                      }}
+                    />
                     <Legend />
                   </PieChart>
-                ) : (
-                  <ResponsiveContainer
-                    width="100%"
-                    height="100%"
-                    minWidth={0}
-                    minHeight={320}
-                  >
-                    <PieChart>
-                      <Pie
-                        data={statusData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={100}
-                        paddingAngle={2}
-                        dataKey="value"
-                      >
-                        {statusData.map((entry, index) => (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={COLORS[index % COLORS.length]}
-                          />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        contentStyle={{
-                          borderRadius: "8px",
-                          border: "none",
-                          boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
-                        }}
-                      />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
-                )
+                </ResponsiveContainer>
               ) : (
                 <div className="h-full flex items-center justify-center text-zinc-400">
                   No data available
@@ -350,10 +388,13 @@ export const Reports = () => {
             <div className="h-80 w-full" style={{ minHeight: 320 }}>
               {filteredPackages.filter((p) => p.dateSubmitted && p.dateReleased)
                 .length > 0 ? (
-                isGeneratingPdf ? (
+                <ResponsiveContainer
+                  width="100%"
+                  height="100%"
+                  minWidth={0}
+                  minHeight={320}
+                >
                   <BarChart
-                    width={500}
-                    height={320}
                     data={timelineData}
                     margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
                   >
@@ -373,51 +414,21 @@ export const Reports = () => {
                       tickLine={false}
                       tick={{ fill: "#71717a" }}
                     />
-                    <Bar dataKey="value" fill="#4f46e5" radius={[4, 4, 0, 0]} />
+                    <Tooltip
+                      cursor={{ fill: "#f4f4f5" }}
+                      contentStyle={{
+                        borderRadius: "8px",
+                        border: "none",
+                        boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                      }}
+                    />
+                    <Bar
+                      dataKey="value"
+                      fill="#4f46e5"
+                      radius={[4, 4, 0, 0]}
+                    />
                   </BarChart>
-                ) : (
-                  <ResponsiveContainer
-                    width="100%"
-                    height="100%"
-                    minWidth={0}
-                    minHeight={320}
-                  >
-                    <BarChart
-                      data={timelineData}
-                      margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
-                    >
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        vertical={false}
-                        stroke="#e4e4e7"
-                      />
-                      <XAxis
-                        dataKey="name"
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fill: "#71717a" }}
-                      />
-                      <YAxis
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fill: "#71717a" }}
-                      />
-                      <Tooltip
-                        cursor={{ fill: "#f4f4f5" }}
-                        contentStyle={{
-                          borderRadius: "8px",
-                          border: "none",
-                          boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
-                        }}
-                      />
-                      <Bar
-                        dataKey="value"
-                        fill="#4f46e5"
-                        radius={[4, 4, 0, 0]}
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
-                )
+                </ResponsiveContainer>
               ) : (
                 <div className="h-full flex items-center justify-center text-zinc-400">
                   Not enough completed packages with dates to show timeline.

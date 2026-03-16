@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PackageProvider } from './store/PackageContext';
 import { Layout } from './components/Layout';
 import { Dashboard } from './components/Dashboard';
@@ -12,9 +12,22 @@ import { ImportExport } from './components/ImportExport';
 import { Reports } from './components/Reports';
 import { Settings } from './components/Settings';
 import { DeletedPackages } from './components/DeletedPackages';
+import { FirstLaunch } from './components/FirstLaunch';
 
-export default function App() {
+function AppContent() {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [isFirstLaunch, setIsFirstLaunch] = useState(() => {
+    return localStorage.getItem('logistics_first_launch_completed') !== 'true';
+  });
+
+  const handleFirstLaunchComplete = () => {
+    localStorage.setItem('logistics_first_launch_completed', 'true');
+    setIsFirstLaunch(false);
+  };
+
+  if (isFirstLaunch) {
+    return <FirstLaunch onComplete={handleFirstLaunchComplete} />;
+  }
 
   const renderContent = () => {
     switch (activeTab) {
@@ -36,10 +49,16 @@ export default function App() {
   };
 
   return (
+    <Layout activeTab={activeTab} setActiveTab={setActiveTab}>
+      {renderContent()}
+    </Layout>
+  );
+}
+
+export default function App() {
+  return (
     <PackageProvider>
-      <Layout activeTab={activeTab} setActiveTab={setActiveTab}>
-        {renderContent()}
-      </Layout>
+      <AppContent />
     </PackageProvider>
   );
 }
