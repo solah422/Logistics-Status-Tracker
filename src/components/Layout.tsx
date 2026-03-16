@@ -34,7 +34,7 @@ export const Layout = ({ children, activeTab, setActiveTab }: LayoutProps) => {
 
       {/* Sidebar */}
       <aside className={clsx(
-        "fixed lg:static inset-y-0 left-0 z-50 bg-zinc-900 dark:bg-[#1a1a1a] text-zinc-300 transition-all duration-300 ease-in-out flex flex-col",
+        "fixed lg:static inset-y-0 left-0 z-50 bg-zinc-900 dark:bg-[#1a1a1a] text-zinc-300 transition-all duration-300 ease-in-out flex flex-col print:hidden",
         mobileSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
         sidebarCollapsed ? "w-20" : "w-64"
       )}>
@@ -85,8 +85,8 @@ export const Layout = ({ children, activeTab, setActiveTab }: LayoutProps) => {
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-        <header className="h-16 flex items-center px-4 sm:px-6 lg:px-8 bg-white dark:bg-[#1e1e1e] border-b border-zinc-200 dark:border-zinc-800 transition-colors duration-200">
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative print:overflow-visible">
+        <header className="h-16 flex items-center px-4 sm:px-6 lg:px-8 bg-white dark:bg-[#1e1e1e] border-b border-zinc-200 dark:border-zinc-800 transition-colors duration-200 print:hidden">
           <button 
             className="lg:hidden mr-4 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
             onClick={() => setMobileSidebarOpen(true)}
@@ -106,12 +106,12 @@ export const Layout = ({ children, activeTab, setActiveTab }: LayoutProps) => {
             </button>
           </div>
         </header>
-        <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
+        <div className="flex-1 overflow-auto print:overflow-visible p-4 sm:p-6 lg:p-8">
           {children}
         </div>
 
         {/* Toast Container */}
-        <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none">
+        <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none print:hidden">
           {toasts.map(toast => {
             const Icon = toast.type === 'success' ? CheckCircle2 : toast.type === 'error' ? AlertCircle : Info;
             return (
