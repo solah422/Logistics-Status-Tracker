@@ -154,7 +154,7 @@ export const Settings = () => {
                 className="text-sm bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-md px-2 py-1 dark:text-zinc-200"
               >
                 {colorOptions.map(opt => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  <option key={opt.value} value={opt.value} className="bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">{opt.label}</option>
                 ))}
               </select>
             </div>
@@ -194,11 +194,11 @@ export const Settings = () => {
                 onChange={(e) => setNewFieldType(e.target.value as CustomFieldType)}
                 className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:text-zinc-100"
               >
-                <option value="text">Text</option>
-                <option value="number">Number</option>
-                <option value="date">Date</option>
-                <option value="boolean">Checkbox (Yes/No)</option>
-                <option value="select">Dropdown</option>
+                <option value="text" className="bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">Text</option>
+                <option value="number" className="bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">Number</option>
+                <option value="date" className="bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">Date</option>
+                <option value="boolean" className="bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">Checkbox (Yes/No)</option>
+                <option value="select" className="bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">Dropdown</option>
               </select>
             </div>
           </div>

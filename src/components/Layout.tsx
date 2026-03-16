@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PackageSearch, LayoutDashboard, Settings, FileSpreadsheet, BarChart3, Menu, X, Trash2, ChevronLeft, ChevronRight, CheckCircle2, AlertCircle, Info } from 'lucide-react';
+import { PackageSearch, LayoutDashboard, Settings, FileSpreadsheet, BarChart3, Menu, X, Trash2, ChevronLeft, ChevronRight, CheckCircle2, AlertCircle, Info, Sun, Moon, Monitor } from 'lucide-react';
 import { clsx } from 'clsx';
 import { usePackages } from '../store/PackageContext';
 
@@ -11,7 +11,7 @@ interface LayoutProps {
 
 export const Layout = ({ children, activeTab, setActiveTab }: LayoutProps) => {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const { sidebarCollapsed, setSidebarCollapsed, toasts, removeToast } = usePackages();
+  const { sidebarCollapsed, setSidebarCollapsed, toasts, removeToast, theme, setTheme } = usePackages();
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -96,6 +96,15 @@ export const Layout = ({ children, activeTab, setActiveTab }: LayoutProps) => {
           <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 capitalize">
             {navItems.find(i => i.id === activeTab)?.label}
           </h1>
+          <div className="ml-auto flex items-center gap-2">
+            <button
+              onClick={() => setTheme(theme === 'dark' ? 'light' : theme === 'light' ? 'system' : 'dark')}
+              className="p-2 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+              title={`Theme: ${theme}`}
+            >
+              {theme === 'dark' ? <Moon size={20} /> : theme === 'light' ? <Sun size={20} /> : <Monitor size={20} />}
+            </button>
+          </div>
         </header>
         <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
           {children}

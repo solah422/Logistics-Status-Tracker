@@ -6,13 +6,13 @@ A comprehensive, feature-rich logistics and package tracking application built w
 
 - **Package Management**: Create, read, update, and soft-delete packages.
 - **Status Tracking**: Track package statuses with a detailed history and visual progress steppers.
-- **Inline Editing**: Quickly edit package details (tracking numbers, dates, statuses) directly from the list view.
+- **Inline Editing**: Quickly edit package dates (submitted, released) and statuses directly from the list view.
 - **Advanced Filtering**: Filter by status, date ranges, and document availability. Save custom filter views.
 - **Custom Fields**: Dynamically add and manage custom fields for packages.
 - **Google Drive Sync**: Sync your database with a JSON file hosted on Google Drive using the File System Access API.
 - **Import/Export**: Drag-and-drop support for CSV and JSON file imports and exports.
 - **Automated Archiving**: Automatically archive packages that have reached their final status.
-- **UI/UX Enhancements**: Dark mode, skeleton loaders, toast notifications, collapsible sidebar, and mobile-optimized card views.
+- **UI/UX Enhancements**: Full dark mode support with theme toggle, skeleton loaders, toast notifications, collapsible sidebar, and mobile-optimized card views.
 
 ## Tech Stack
 

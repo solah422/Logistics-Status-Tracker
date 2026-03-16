@@ -27,35 +27,35 @@ export const Dashboard = () => {
         {stats.map((stat, i) => {
           const Icon = stat.icon;
           return (
-            <div key={i} className="bg-white rounded-xl shadow-sm border border-zinc-200 p-6 flex items-center gap-4">
+            <div key={i} className="bg-white dark:bg-zinc-900 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-800 p-6 flex items-center gap-4">
               <div className={`p-3 rounded-lg ${stat.bg} ${stat.color}`}>
                 <Icon size={24} />
               </div>
               <div>
-                <p className="text-sm font-medium text-zinc-500">{stat.label}</p>
-                <p className="text-2xl font-semibold text-zinc-900">{stat.value}</p>
+                <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">{stat.label}</p>
+                <p className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">{stat.value}</p>
               </div>
             </div>
           );
         })}
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-zinc-200 p-6">
-        <h2 className="text-lg font-semibold text-zinc-900 mb-4">Recent Activity</h2>
+      <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-800 p-6">
+        <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">Recent Activity</h2>
         <div className="space-y-4">
           {activePackages.slice(0, 5).map(pkg => (
-            <div key={pkg.id} className="flex items-center justify-between py-3 border-b border-zinc-100 last:border-0">
+            <div key={pkg.id} className="flex items-center justify-between py-3 border-b border-zinc-100 dark:border-zinc-800 last:border-0">
               <div>
-                <p className="font-medium text-zinc-900">{pkg.rNumberIdNumber || pkg.trackingNumber}</p>
-                <p className="text-sm text-zinc-500">Status changed to <span className="font-medium text-zinc-700">{pkg.status}</span></p>
+                <p className="font-medium text-zinc-900 dark:text-zinc-100">{pkg.rNumberIdNumber || pkg.trackingNumber}</p>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">Status changed to <span className="font-medium text-zinc-700 dark:text-zinc-300">{pkg.status}</span></p>
               </div>
-              <span className="text-sm text-zinc-400">
+              <span className="text-sm text-zinc-400 dark:text-zinc-500">
                 {new Date(pkg.updatedAt).toLocaleDateString()}
               </span>
             </div>
           ))}
           {activePackages.length === 0 && (
-            <p className="text-zinc-500 text-sm text-center py-4">No packages found. Add one to get started.</p>
+            <p className="text-zinc-500 dark:text-zinc-400 text-sm text-center py-4">No packages found. Add one to get started.</p>
           )}
         </div>
       </div>

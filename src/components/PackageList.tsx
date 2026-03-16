@@ -305,9 +305,9 @@ export const PackageList = () => {
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none dark:text-zinc-200"
               >
-                <option value="all">All Statuses</option>
+                <option value="all" className="bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">All Statuses</option>
                 {statuses.map(s => (
-                  <option key={s} value={s}>{s}</option>
+                  <option key={s} value={s} className="bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">{s}</option>
                 ))}
               </select>
             </div>
@@ -319,9 +319,9 @@ export const PackageList = () => {
                 onChange={(e) => setHasDocsFilter(e.target.value as any)}
                 className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none dark:text-zinc-200"
               >
-                <option value="all">Any</option>
-                <option value="yes">Yes</option>
-                <option value="no">No</option>
+                <option value="all" className="bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">Any</option>
+                <option value="yes" className="bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">Yes</option>
+                <option value="no" className="bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">No</option>
               </select>
             </div>
             
@@ -387,41 +387,12 @@ export const PackageList = () => {
                             {expandedPackage === pkg.id ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                           </button>
                           <div>
-                            {inlineEditId === pkg.id && inlineEditField === 'trackingNumber' ? (
-                              <input
-                                autoFocus
-                                type="text"
-                                value={inlineEditValue as string}
-                                onChange={(e) => setInlineEditValue(e.target.value)}
-                                onBlur={saveInlineEdit}
-                                onKeyDown={handleInlineEditKeyDown}
-                                className="font-medium text-zinc-900 dark:text-zinc-100 bg-white dark:bg-zinc-800 border border-indigo-500 rounded px-1 py-0.5 outline-none w-full max-w-[150px]"
-                              />
-                            ) : (
-                              <p 
-                                className="font-medium text-zinc-900 dark:text-zinc-100 cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400"
-                                onClick={() => startInlineEdit(pkg.id, 'trackingNumber', pkg.trackingNumber)}
-                              >
-                                {pkg.trackingNumber}
-                              </p>
-                            )}
-                            
-                            {inlineEditId === pkg.id && inlineEditField === 'rNumberIdNumber' ? (
-                              <input
-                                autoFocus
-                                type="text"
-                                value={inlineEditValue as string}
-                                onChange={(e) => setInlineEditValue(e.target.value)}
-                                onBlur={saveInlineEdit}
-                                onKeyDown={handleInlineEditKeyDown}
-                                className="text-sm text-zinc-500 dark:text-zinc-400 bg-white dark:bg-zinc-800 border border-indigo-500 rounded px-1 py-0.5 outline-none w-full max-w-[150px] mt-1"
-                              />
-                            ) : (
-                              <p 
-                                className="text-sm text-zinc-500 dark:text-zinc-400 cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400"
-                                onClick={() => startInlineEdit(pkg.id, 'rNumberIdNumber', pkg.rNumberIdNumber)}
-                              >
-                                {pkg.rNumberIdNumber || 'Add ID'}
+                            <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                              {pkg.trackingNumber}
+                            </p>
+                            {pkg.rNumberIdNumber && (
+                              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                                {pkg.rNumberIdNumber}
                               </p>
                             )}
                           </div>
@@ -483,7 +454,7 @@ export const PackageList = () => {
                             style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.25rem center', backgroundSize: '1.5em 1.5em' }}
                           >
                             {statuses.map(s => (
-                              <option key={s} value={s}>{s}</option>
+                              <option key={s} value={s} className="bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">{s}</option>
                             ))}
                           </select>
                           <ProgressStepper status={pkg.status} />

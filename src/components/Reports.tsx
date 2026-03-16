@@ -42,8 +42,8 @@ export const Reports = () => {
     <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Status Distribution */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-zinc-200">
-          <h2 className="text-lg font-semibold text-zinc-900 mb-6">Current Status Distribution</h2>
+        <div className="bg-white dark:bg-zinc-900 p-6 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-800">
+          <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-6">Current Status Distribution</h2>
           <div className="h-80 w-full">
             {activePackages.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
@@ -74,8 +74,8 @@ export const Reports = () => {
         </div>
 
         {/* Processing Time */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-zinc-200">
-          <h2 className="text-lg font-semibold text-zinc-900 mb-6">Processing Time (Submitted to Released)</h2>
+        <div className="bg-white dark:bg-zinc-900 p-6 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-800">
+          <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-6">Processing Time (Submitted to Released)</h2>
           <div className="h-80 w-full">
             {activePackages.filter(p => p.dateSubmitted && p.dateReleased).length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">

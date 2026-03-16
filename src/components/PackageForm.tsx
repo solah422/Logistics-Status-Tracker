@@ -163,7 +163,7 @@ export const PackageForm = ({ initialData, onClose }: PackageFormProps) => {
             className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all dark:text-zinc-100"
           >
             {statuses.map(s => (
-              <option key={s} value={s}>{s}</option>
+              <option key={s} value={s} className="bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">{s}</option>
             ))}
           </select>
         </div>
@@ -291,9 +291,9 @@ export const PackageForm = ({ initialData, onClose }: PackageFormProps) => {
                       onChange={(e) => handleCustomFieldChange(def.id, e.target.value)}
                       className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-zinc-100"
                     >
-                      <option value="">Select an option...</option>
+                      <option value="" className="bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">Select an option...</option>
                       {def.options.map(opt => (
-                        <option key={opt} value={opt}>{opt}</option>
+                        <option key={opt} value={opt} className="bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">{opt}</option>
                       ))}
                     </select>
                   )}
