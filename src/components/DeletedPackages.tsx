@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { usePackages } from '../store/PackageContext';
 import { Search, RotateCcw, Trash2, AlertTriangle } from 'lucide-react';
 import { clsx } from 'clsx';
@@ -8,6 +8,20 @@ export const DeletedPackages = () => {
   const { deletedPackages, restorePackage, hardDeletePackage } = usePackages();
   const [searchQuery, setSearchQuery] = useState('');
   const [packageToHardDelete, setPackageToHardDelete] = useState<string | null>(null);
+  const [deleteCountdown, setDeleteCountdown] = useState(0);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (packageToHardDelete) {
+      setDeleteCountdown(5);
+      timer = setInterval(() => {
+        setDeleteCountdown((prev) => Math.max(0, prev - 1));
+      }, 1000);
+    } else {
+      setDeleteCountdown(0);
+    }
+    return () => clearInterval(timer);
+  }, [packageToHardDelete]);
 
   const filteredPackages = useMemo(() => {
     return deletedPackages.filter(pkg => {
@@ -17,7 +31,7 @@ export const DeletedPackages = () => {
   }, [deletedPackages, searchQuery]);
 
   const confirmHardDelete = () => {
-    if (packageToHardDelete) {
+    if (packageToHardDelete && deleteCountdown === 0) {
       hardDeletePackage(packageToHardDelete);
       setPackageToHardDelete(null);
     }
@@ -138,9 +152,10 @@ export const DeletedPackages = () => {
             </button>
             <button
               onClick={confirmHardDelete}
-              className="px-4 py-2 text-sm font-medium text-white bg-rose-600 border border-transparent rounded-lg hover:bg-rose-700 transition-colors shadow-sm"
+              disabled={deleteCountdown > 0}
+              className="px-4 py-2 text-sm font-medium text-white bg-rose-600 border border-transparent rounded-lg hover:bg-rose-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Permanently Delete
+              {deleteCountdown > 0 ? `Permanently Delete (${deleteCountdown}s)` : 'Permanently Delete'}
             </button>
           </div>
         </div>
