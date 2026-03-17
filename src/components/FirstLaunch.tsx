@@ -38,9 +38,14 @@ export const FirstLaunch = ({ onComplete }: { onComplete: () => void }) => {
           <Cloud className="w-10 h-10 text-indigo-600 dark:text-indigo-400" />
         </div>
         
-        <div className="space-y-2">
-          <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Welcome to LogiTrack Pro</h1>
-          <p className="text-zinc-500 dark:text-zinc-400">
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Welcome to LogiTrack Pro</h1>
+            <p className="text-zinc-600 dark:text-zinc-300">
+              Your ultimate command center for modern logistics. Seamlessly track packages, manage workflows with interactive Kanban boards, and generate real-time analytics and PDF reports.
+            </p>
+          </div>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">
             It looks like this is your first time here. Would you like to link an existing database file from Google Drive (or your local computer) to sync your packages?
           </p>
         </div>

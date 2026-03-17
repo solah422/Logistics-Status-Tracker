@@ -844,18 +844,25 @@ export const PackageList = () => {
                                     .map((entry, idx) => (
                                       <li
                                         key={idx}
-                                        className="px-3 py-2 flex justify-between items-center text-sm"
+                                        className="px-3 py-2 flex flex-col gap-1 text-sm"
                                       >
-                                        <span
-                                          className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getStatusColor(entry.status)}`}
-                                        >
-                                          {entry.status}
-                                        </span>
-                                        <span className="text-zinc-500 dark:text-zinc-400 text-xs">
-                                          {new Date(
-                                            entry.timestamp,
-                                          ).toLocaleString()}
-                                        </span>
+                                        <div className="flex justify-between items-center">
+                                          <span
+                                            className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getStatusColor(entry.status)}`}
+                                          >
+                                            {entry.status}
+                                          </span>
+                                          <span className="text-zinc-500 dark:text-zinc-400 text-xs">
+                                            {new Date(
+                                              entry.timestamp,
+                                            ).toLocaleString()}
+                                          </span>
+                                        </div>
+                                        {entry.notes && (
+                                          <p className="text-xs text-zinc-600 dark:text-zinc-300 mt-1 bg-zinc-50 dark:bg-zinc-900/50 p-2 rounded border border-zinc-100 dark:border-zinc-800">
+                                            <span className="font-semibold">Notes:</span> {entry.notes}
+                                          </p>
+                                        )}
                                       </li>
                                     ))}
                                   {(!pkg.history ||

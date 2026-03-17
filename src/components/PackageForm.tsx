@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Package, Status } from '../types';
 import { usePackages } from '../store/PackageContext';
+import { MessageSquarePlus } from 'lucide-react';
 
 interface PackageFormProps {
   initialData?: Package;
@@ -23,8 +24,11 @@ export const PackageForm = ({ initialData, onClose }: PackageFormProps) => {
     expectedDutyAmount: undefined,
     clarificationDetails: '',
     cancellationReason: '',
+    notes: '',
     customFields: {}
   });
+
+  const [showNotes, setShowNotes] = useState(false);
 
   useEffect(() => {
     if (initialData) {
@@ -32,6 +36,9 @@ export const PackageForm = ({ initialData, onClose }: PackageFormProps) => {
         ...initialData,
         customFields: initialData.customFields || {}
       });
+      if (initialData.notes || initialData.status === 'Info Needed') {
+        setShowNotes(true);
+      }
     }
   }, [initialData]);
 
@@ -45,6 +52,9 @@ export const PackageForm = ({ initialData, onClose }: PackageFormProps) => {
         ...prev,
         dateReleased: new Date().toISOString().split('T')[0]
       }));
+    }
+    if (formData.status === 'Info Needed') {
+      setShowNotes(true);
     }
   }, [formData.status]);
 
@@ -243,6 +253,34 @@ export const PackageForm = ({ initialData, onClose }: PackageFormProps) => {
             className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all dark:text-zinc-100"
             placeholder="e.g. Submitted, Pending..."
           />
+        </div>
+
+        {/* Notes Field */}
+        <div className="md:col-span-2">
+          {!showNotes ? (
+            <button
+              type="button"
+              onClick={() => setShowNotes(true)}
+              className="flex items-center gap-2 text-sm text-indigo-600 dark:text-indigo-400 font-medium hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
+            >
+              <MessageSquarePlus size={16} />
+              Add Notes / Info Needed
+            </button>
+          ) : (
+            <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                Notes / Info Needed Details
+              </label>
+              <textarea
+                name="notes"
+                value={formData.notes || ''}
+                onChange={handleChange}
+                rows={3}
+                className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all resize-none dark:text-zinc-100"
+                placeholder="Enter any additional notes or information needed..."
+              />
+            </div>
+          )}
         </div>
 
         {/* Custom Fields */}

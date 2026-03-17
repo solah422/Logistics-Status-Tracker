@@ -29,6 +29,12 @@ interface PackageContextType {
   syncError: string | null;
   setSyncError: (error: string | null) => void;
   
+  archiveFileHandle: any;
+  setArchiveFileHandle: (handle: any) => void;
+  archiveError: string | null;
+  setArchiveError: (error: string | null) => void;
+  triggerArchive: (all?: boolean) => void;
+  
   customFieldDefs: CustomFieldDef[];
   addCustomFieldDef: (def: CustomFieldDef) => void;
   removeCustomFieldDef: (id: string) => void;
@@ -102,6 +108,9 @@ export const PackageProvider = ({ children }: { children: ReactNode }) => {
 
   const [fileHandle, setFileHandle] = useState<any>(null);
   const [syncError, setSyncError] = useState<string | null>(null);
+  
+  const [archiveFileHandle, setArchiveFileHandle] = useState<any>(null);
+  const [archiveError, setArchiveError] = useState<string | null>(null);
 
   // Simulate initial load
   useEffect(() => {
@@ -135,10 +144,32 @@ export const PackageProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [theme]);
 
-  // Load file handle on mount
+  // Load file handle on mount and sync
   useEffect(() => {
-    get('logistics_sync_handle').then(handle => {
-      if (handle) setFileHandle(handle);
+    get('logistics_sync_handle').then(async (handle) => {
+      if (handle) {
+        setFileHandle(handle);
+        try {
+          const permission = await handle.queryPermission({ mode: 'read' });
+          if (permission === 'granted') {
+            const file = await handle.getFile();
+            const text = await file.text();
+            if (text) {
+              const data = JSON.parse(text);
+              setPackages(data);
+            }
+          } else {
+            setSyncError('Permission required to sync with Google Drive JSON file on startup.');
+          }
+        } catch (error) {
+          console.error('Failed to read sync file on startup:', error);
+          setSyncError('Failed to read sync file on startup.');
+        }
+      }
+    });
+
+    get('logistics_archive_handle').then(handle => {
+      if (handle) setArchiveFileHandle(handle);
     });
   }, []);
 
@@ -185,6 +216,94 @@ export const PackageProvider = ({ children }: { children: ReactNode }) => {
       setPackages(updatedPackages);
     }
   }, [packages]);
+
+  const triggerArchive = async (all: boolean = true) => {
+    if (!archiveFileHandle) {
+      setArchiveError('No archive file linked.');
+      return;
+    }
+
+    try {
+      const permission = await archiveFileHandle.queryPermission({ mode: 'readwrite' });
+      if (permission !== 'granted') {
+        setArchiveError('Permission required to write to archive file.');
+        return;
+      }
+
+      // Read existing archive data
+      let existingArchive: Package[] = [];
+      try {
+        const file = await archiveFileHandle.getFile();
+        const text = await file.text();
+        if (text) {
+          existingArchive = JSON.parse(text);
+        }
+      } catch (e) {
+        // File might be empty or invalid, start fresh
+      }
+
+      const now = new Date().getTime();
+      const oneDay = 24 * 60 * 60 * 1000;
+
+      // Find packages to archive (Bond & Released)
+      const packagesToArchive = packages.filter(p => {
+        if (p.status !== 'Bond & Released') return false;
+        if (all) return true;
+        const lastUpdated = new Date(p.updatedAt).getTime();
+        return now - lastUpdated > oneDay;
+      });
+      
+      if (packagesToArchive.length === 0) {
+        return; // Nothing to archive
+      }
+
+      // Merge and save
+      const newArchive = [...existingArchive, ...packagesToArchive];
+      const writable = await archiveFileHandle.createWritable();
+      await writable.write(JSON.stringify(newArchive, null, 2));
+      await writable.close();
+      
+      setArchiveError(null);
+
+      // Remove archived packages from main list
+      const archivedIds = new Set(packagesToArchive.map(p => p.id));
+      const remainingPackages = packages.filter(p => !archivedIds.has(p.id));
+      setPackages(remainingPackages);
+      addToast(`Archived ${packagesToArchive.length} packages.`, 'success');
+
+    } catch (error) {
+      console.error('Failed to archive packages:', error);
+      setArchiveError('Failed to write to archive file.');
+    }
+  };
+
+  // Auto-archive completed packages every 24 hours
+  useEffect(() => {
+    if (!archiveFileHandle) return;
+
+    const checkAndArchive = () => {
+      const now = new Date().getTime();
+      const oneDay = 24 * 60 * 60 * 1000;
+      
+      const hasPackagesToArchive = packages.some(p => {
+        if (p.status === 'Bond & Released') {
+          const lastUpdated = new Date(p.updatedAt).getTime();
+          return now - lastUpdated > oneDay;
+        }
+        return false;
+      });
+
+      if (hasPackagesToArchive) {
+        triggerArchive(false); // Only archive those older than 24 hours
+      }
+    };
+
+    // Check on mount and then every hour
+    checkAndArchive();
+    const interval = setInterval(checkAndArchive, 60 * 60 * 1000);
+    
+    return () => clearInterval(interval);
+  }, [packages, archiveFileHandle]);
 
   // Sync to file and localStorage
   useEffect(() => {
@@ -264,7 +383,7 @@ export const PackageProvider = ({ children }: { children: ReactNode }) => {
       id: crypto.randomUUID(),
       createdAt: now,
       updatedAt: now,
-      history: [{ status: pkgData.status, timestamp: now }]
+      history: [{ status: pkgData.status, timestamp: now, notes: pkgData.notes }]
     };
     setPackages(prev => [newPackage, ...prev]);
     addToast('Package added successfully', 'success');
@@ -276,9 +395,18 @@ export const PackageProvider = ({ children }: { children: ReactNode }) => {
         const now = new Date().toISOString();
         const updatedPkg = { ...pkg, ...updates, updatedAt: now };
         
-        // If status changed, add to history
-        if (updates.status && updates.status !== pkg.status) {
-          updatedPkg.history = [...pkg.history, { status: updates.status, timestamp: now }];
+        const statusChanged = updates.status && updates.status !== pkg.status;
+        const notesChanged = updates.notes !== undefined && updates.notes !== pkg.notes;
+
+        if (statusChanged || notesChanged) {
+          updatedPkg.history = [
+            ...pkg.history, 
+            { 
+              status: updates.status || pkg.status, 
+              timestamp: now,
+              notes: updates.notes !== undefined ? updates.notes : pkg.notes
+            }
+          ];
         }
         
         return updatedPkg;
@@ -382,6 +510,7 @@ export const PackageProvider = ({ children }: { children: ReactNode }) => {
       addPackage, updatePackage, deletePackage, restorePackage, hardDeletePackage,
       addStatus, importPackages, exportPackages,
       fileHandle, setFileHandle, syncError, setSyncError,
+      archiveFileHandle, setArchiveFileHandle, archiveError, setArchiveError, triggerArchive,
       customFieldDefs, addCustomFieldDef, removeCustomFieldDef,
       statusColors, updateStatusColor,
       savedFilters, addSavedFilter, removeSavedFilter,

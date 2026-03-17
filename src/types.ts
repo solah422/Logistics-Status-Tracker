@@ -43,6 +43,7 @@ export interface Package {
   documentsUploaded: boolean;
   readySystemStatusUpdated?: boolean; // New checkbox
   brokerFormStatus?: string; // Manually triggered
+  notes?: string; // General notes or Info Needed details
   
   customFields?: Record<string, any>; // Dynamic fields
   
@@ -55,6 +56,7 @@ export interface Package {
 
 export const DEFAULT_STATUSES = [
   "Pending",
+  "Info Needed",
   "Customs Checking",
   "Customs Processed",
   "Clarification Required",
@@ -74,6 +76,7 @@ export const FINAL_STATUSES = [
 
 export const DEFAULT_STATUS_COLORS: Record<string, string> = {
   "Pending": "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
+  "Info Needed": "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
   "Customs Checking": "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
   "Customs Processed": "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400",
   "Clarification Required": "bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-400",

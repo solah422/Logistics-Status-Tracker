@@ -9,6 +9,7 @@ export const Settings = () => {
   const { 
     statuses, addStatus, 
     fileHandle, setFileHandle, syncError, setSyncError, importPackages,
+    archiveFileHandle, setArchiveFileHandle, archiveError, setArchiveError, triggerArchive,
     statusColors, updateStatusColor,
     customFieldDefs, addCustomFieldDef, removeCustomFieldDef
   } = usePackages();
@@ -81,6 +82,35 @@ export const Settings = () => {
         const permission = await fileHandle.requestPermission({ mode: 'readwrite' });
         if (permission === 'granted') {
           setSyncError(null);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  };
+
+  const handleSelectArchiveFile = async () => {
+    try {
+      const [handle] = await (window as any).showOpenFilePicker({
+        types: [{ description: 'JSON Files', accept: { 'application/json': ['.json'] } }]
+      });
+      await set('logistics_archive_handle', handle);
+      setArchiveFileHandle(handle);
+      setArchiveError(null);
+    } catch (err: any) {
+      if (err.name !== 'AbortError') {
+        console.error(err);
+        setArchiveError('Failed to select archive file.');
+      }
+    }
+  };
+
+  const handleGrantArchivePermission = async () => {
+    if (archiveFileHandle) {
+      try {
+        const permission = await archiveFileHandle.requestPermission({ mode: 'readwrite' });
+        if (permission === 'granted') {
+          setArchiveError(null);
         }
       } catch (err) {
         console.error(err);
@@ -318,6 +348,70 @@ export const Settings = () => {
           >
             {fileHandle ? 'Change File' : 'Select File'}
           </button>
+        </div>
+      </div>
+
+      {/* Completed Packages Archive */}
+      <div className="bg-white dark:bg-[#1e1e1e] p-6 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-800">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
+            <Cloud size={24} />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Completed Packages Archive</h2>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">Link a secondary JSON file to automatically archive "Bond & Released" packages every 24 hours.</p>
+          </div>
+        </div>
+
+        {archiveError && (
+          <div className="mb-6 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg flex items-start gap-3 text-amber-800 dark:text-amber-400">
+            <AlertCircle size={20} className="shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm font-medium">{archiveError}</p>
+              {archiveError.includes('Permission required') && (
+                <button 
+                  onClick={handleGrantArchivePermission}
+                  className="mt-2 text-sm font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300"
+                >
+                  Grant Permission
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between p-4 bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-lg">
+          <div className="flex items-center gap-3">
+            {archiveFileHandle ? (
+              <Cloud className="text-emerald-500 dark:text-emerald-400" size={20} />
+            ) : (
+              <CloudOff className="text-zinc-400 dark:text-zinc-500" size={20} />
+            )}
+            <div>
+              <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                {archiveFileHandle ? `Connected: ${archiveFileHandle.name}` : 'Not Connected'}
+              </p>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                {archiveFileHandle ? 'Auto-archiving every 24 hours.' : 'Select a JSON file to start archiving.'}
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            {archiveFileHandle && (
+              <button
+                onClick={() => triggerArchive(true)}
+                className="px-4 py-2 text-sm font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-100 dark:border-emerald-800 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors"
+              >
+                Archive Now
+              </button>
+            )}
+            <button
+              onClick={handleSelectArchiveFile}
+              className="px-4 py-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors"
+            >
+              {archiveFileHandle ? 'Change File' : 'Select File'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
