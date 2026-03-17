@@ -19,7 +19,7 @@ interface PackageContextType {
   updatePackage: (id: string, updates: Partial<Package>) => void;
   deletePackage: (id: string) => void;
   restorePackage: (id: string) => void;
-  hardDeletePackage: (id: string) => void;
+  hardDeletePackage: (id: string) => Promise<void>;
   addStatus: (status: string) => void;
   importPackages: (newPackages: Package[], overwrite?: boolean) => void;
   exportPackages: (selectedIds?: string[]) => string;
@@ -28,6 +28,7 @@ interface PackageContextType {
   setFileHandle: (handle: any) => void;
   syncError: string | null;
   setSyncError: (error: string | null) => void;
+  forceSync: (handleToUse?: any) => Promise<void>;
   
   archiveFileHandle: any;
   setArchiveFileHandle: (handle: any) => void;
@@ -144,55 +145,124 @@ export const PackageProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [theme]);
 
+  // Helper to merge packages
+  const performMerge = async (handle: any, localPackages: Package[], isStartup: boolean = false, silent: boolean = false) => {
+    try {
+      const permission = await handle.queryPermission({ mode: 'readwrite' });
+      if (permission !== 'granted') {
+        setSyncError('Permission required to sync with Google Drive JSON file.');
+        return;
+      }
+
+      const file = await handle.getFile();
+      const text = await file.text();
+      let remotePackages: Package[] = [];
+      
+      if (text) {
+        remotePackages = JSON.parse(text);
+      }
+
+      // Merge Logic (Last Write Wins)
+      let pushed = 0;
+      let pulled = 0;
+      const mergedMap = new Map<string, Package>();
+
+      // Add all remote packages to map
+      remotePackages.forEach(remotePkg => {
+        mergedMap.set(remotePkg.id, remotePkg);
+      });
+
+      // Compare local packages
+      localPackages.forEach(localPkg => {
+        const remotePkg = mergedMap.get(localPkg.id);
+        if (!remotePkg) {
+          // Local has a new package
+          mergedMap.set(localPkg.id, localPkg);
+          pushed++;
+        } else {
+          // Both have the package, compare updatedAt
+          const localTime = new Date(localPkg.updatedAt).getTime();
+          const remoteTime = new Date(remotePkg.updatedAt).getTime();
+          
+          if (localTime > remoteTime) {
+            // Local is newer
+            mergedMap.set(localPkg.id, localPkg);
+            pushed++;
+          } else if (remoteTime > localTime) {
+            // Remote is newer
+            pulled++;
+          }
+        }
+      });
+
+      // Count remote packages that aren't in local (they will be pulled)
+      remotePackages.forEach(remotePkg => {
+        if (!localPackages.find(l => l.id === remotePkg.id)) {
+          pulled++;
+        }
+      });
+
+      const mergedPackages = Array.from(mergedMap.values());
+      
+      // Sort by updatedAt descending
+      mergedPackages.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+
+      // Cleanup deleted items older than 7 days
+      const now = new Date().getTime();
+      const sevenDays = 7 * 24 * 60 * 60 * 1000;
+      let cleanupCount = 0;
+      
+      const cleanedPackages = mergedPackages.filter(p => {
+        if (p.deletedAt) {
+          const deletedTime = new Date(p.deletedAt).getTime();
+          if (now - deletedTime > sevenDays) {
+            cleanupCount++;
+            return false;
+          }
+        }
+        return true;
+      });
+
+      // Update local state only if there are changes to avoid infinite loops
+      if (pushed > 0 || pulled > 0 || cleanupCount > 0 || remotePackages.length === 0) {
+        setPackages(cleanedPackages);
+      }
+      
+      // Write back to file if there were local changes pushed or cleaned up
+      if (pushed > 0 || cleanupCount > 0 || remotePackages.length === 0) {
+        const writable = await handle.createWritable();
+        await writable.write(JSON.stringify(cleanedPackages, null, 2));
+        await writable.close();
+      }
+
+      setSyncError(null);
+      
+      if (!silent) {
+        if (pushed === 0 && pulled === 0) {
+          if (!isStartup) addToast('Already up to date with Drive.', 'info');
+        } else {
+          addToast(`Synced with Drive. ${pushed} local updates pushed, ${pulled} remote updates pulled.`, 'success');
+        }
+      }
+
+    } catch (error) {
+      console.error('Failed to merge sync file:', error);
+      setSyncError('Failed to read/write sync file.');
+    }
+  };
+
   // Load file handle on mount and sync
   useEffect(() => {
     get('logistics_sync_handle').then(async (handle) => {
       if (handle) {
         setFileHandle(handle);
-        try {
-          const permission = await handle.queryPermission({ mode: 'read' });
-          if (permission === 'granted') {
-            const file = await handle.getFile();
-            const text = await file.text();
-            if (text) {
-              const data = JSON.parse(text);
-              setPackages(data);
-            }
-          } else {
-            setSyncError('Permission required to sync with Google Drive JSON file on startup.');
-          }
-        } catch (error) {
-          console.error('Failed to read sync file on startup:', error);
-          setSyncError('Failed to read sync file on startup.');
-        }
       }
     });
 
     get('logistics_archive_handle').then(handle => {
       if (handle) setArchiveFileHandle(handle);
     });
-  }, []);
-
-  // Cleanup deleted items older than 7 days
-  useEffect(() => {
-    const now = new Date().getTime();
-    const sevenDays = 7 * 24 * 60 * 60 * 1000;
-    let changed = false;
-    
-    const cleaned = packages.filter(p => {
-      if (p.deletedAt) {
-        const deletedTime = new Date(p.deletedAt).getTime();
-        if (now - deletedTime > sevenDays) {
-          changed = true;
-          return false;
-        }
-      }
-      return true;
-    });
-    
-    if (changed) {
-      setPackages(cleaned);
-    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Auto-archive completed/cancelled items older than 1 day
@@ -269,6 +339,21 @@ export const PackageProvider = ({ children }: { children: ReactNode }) => {
       const archivedIds = new Set(packagesToArchive.map(p => p.id));
       const remainingPackages = packages.filter(p => !archivedIds.has(p.id));
       setPackages(remainingPackages);
+      
+      // Also remove them from the sync file immediately so performMerge doesn't pull them back
+      if (fileHandle) {
+        try {
+          const syncPermission = await fileHandle.queryPermission({ mode: 'readwrite' });
+          if (syncPermission === 'granted') {
+            const syncWritable = await fileHandle.createWritable();
+            await syncWritable.write(JSON.stringify(remainingPackages, null, 2));
+            await syncWritable.close();
+          }
+        } catch (e) {
+          console.error('Failed to update sync file after archiving:', e);
+        }
+      }
+
       addToast(`Archived ${packagesToArchive.length} packages.`, 'success');
 
     } catch (error) {
@@ -305,27 +390,17 @@ export const PackageProvider = ({ children }: { children: ReactNode }) => {
     return () => clearInterval(interval);
   }, [packages, archiveFileHandle]);
 
+  const initialSyncDone = React.useRef(false);
+
   // Sync to file and localStorage
   useEffect(() => {
     localStorage.setItem('logistics_packages', JSON.stringify(packages));
     
     const syncToFile = async () => {
-      if (fileHandle && packages.length > 0) {
-        try {
-          // Check permission
-          const permission = await fileHandle.queryPermission({ mode: 'readwrite' });
-          if (permission === 'granted') {
-            const writable = await fileHandle.createWritable();
-            await writable.write(JSON.stringify(packages, null, 2));
-            await writable.close();
-            setSyncError(null);
-          } else {
-            setSyncError('Permission required to sync with Google Drive JSON file.');
-          }
-        } catch (error) {
-          console.error('Failed to sync to file:', error);
-          setSyncError('Failed to write to sync file.');
-        }
+      if (fileHandle) {
+        const isStartup = !initialSyncDone.current;
+        initialSyncDone.current = true;
+        await performMerge(fileHandle, packages, isStartup, !isStartup);
       }
     };
     
@@ -374,6 +449,15 @@ export const PackageProvider = ({ children }: { children: ReactNode }) => {
 
   const removeToast = (id: string) => {
     setToasts(prev => prev.filter(t => t.id !== id));
+  };
+
+  const forceSync = async (handleToUse?: any) => {
+    const handle = (handleToUse && typeof handleToUse.getFile === 'function') ? handleToUse : fileHandle;
+    if (!handle) {
+      setSyncError('No sync file linked.');
+      return;
+    }
+    await performMerge(handle, packages, false);
   };
 
   const addPackage = (pkgData: Omit<Package, 'id' | 'createdAt' | 'updatedAt' | 'history'>) => {
@@ -434,8 +518,24 @@ export const PackageProvider = ({ children }: { children: ReactNode }) => {
     addToast('Package restored', 'success');
   };
 
-  const hardDeletePackage = (id: string) => {
-    setPackages(prev => prev.filter(pkg => pkg.id !== id));
+  const hardDeletePackage = async (id: string) => {
+    const remainingPackages = packages.filter(pkg => pkg.id !== id);
+    setPackages(remainingPackages);
+    
+    // Also remove from the sync file immediately so performMerge doesn't pull it back
+    if (fileHandle) {
+      try {
+        const syncPermission = await fileHandle.queryPermission({ mode: 'readwrite' });
+        if (syncPermission === 'granted') {
+          const syncWritable = await fileHandle.createWritable();
+          await syncWritable.write(JSON.stringify(remainingPackages, null, 2));
+          await syncWritable.close();
+        }
+      } catch (e) {
+        console.error('Failed to update sync file after hard delete:', e);
+      }
+    }
+
     addToast('Package permanently deleted', 'info');
   };
 
@@ -509,7 +609,7 @@ export const PackageProvider = ({ children }: { children: ReactNode }) => {
       packages, activePackages, deletedPackages, archivedPackages, statuses, isLoading,
       addPackage, updatePackage, deletePackage, restorePackage, hardDeletePackage,
       addStatus, importPackages, exportPackages,
-      fileHandle, setFileHandle, syncError, setSyncError,
+      fileHandle, setFileHandle, syncError, setSyncError, forceSync,
       archiveFileHandle, setArchiveFileHandle, archiveError, setArchiveError, triggerArchive,
       customFieldDefs, addCustomFieldDef, removeCustomFieldDef,
       statusColors, updateStatusColor,

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PackageSearch, LayoutDashboard, Settings, FileSpreadsheet, BarChart3, Menu, X, Trash2, ChevronLeft, ChevronRight, CheckCircle2, AlertCircle, Info, Sun, Moon, Monitor } from 'lucide-react';
+import { PackageSearch, LayoutDashboard, Settings, FileSpreadsheet, BarChart3, Menu, X, Trash2, ChevronLeft, ChevronRight, CheckCircle2, AlertCircle, Info, Sun, Moon, Monitor, Cloud } from 'lucide-react';
 import { clsx } from 'clsx';
 import { usePackages } from '../store/PackageContext';
 
@@ -11,7 +11,7 @@ interface LayoutProps {
 
 export const Layout = ({ children, activeTab, setActiveTab }: LayoutProps) => {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const { sidebarCollapsed, setSidebarCollapsed, toasts, removeToast, theme, setTheme } = usePackages();
+  const { sidebarCollapsed, setSidebarCollapsed, toasts, removeToast, theme, setTheme, fileHandle, forceSync } = usePackages();
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -97,6 +97,16 @@ export const Layout = ({ children, activeTab, setActiveTab }: LayoutProps) => {
             {navItems.find(i => i.id === activeTab)?.label}
           </h1>
           <div className="ml-auto flex items-center gap-2">
+            {fileHandle && (
+              <button
+                onClick={() => forceSync()}
+                className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-100 dark:border-emerald-800 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors mr-2"
+                title="Force Sync Now"
+              >
+                <Cloud size={16} />
+                <span className="hidden sm:inline">Sync</span>
+              </button>
+            )}
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : theme === 'light' ? 'system' : 'dark')}
               className="p-2 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"

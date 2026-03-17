@@ -156,7 +156,14 @@ export const PackageList = () => {
   };
 
   const handleStatusChange = (id: string, newStatus: Status) => {
-    updatePackage(id, { status: newStatus });
+    if (newStatus === 'Info Needed') {
+      const notes = window.prompt('Please enter the information needed or notes for this package:');
+      if (notes !== null) {
+        updatePackage(id, { status: newStatus, notes });
+      }
+    } else {
+      updatePackage(id, { status: newStatus });
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -274,11 +281,6 @@ export const PackageList = () => {
                   }`}
                 >
                   {isCompleted ? <CheckCircle size={12} /> : <Icon size={12} />}
-                </div>
-                <div className="absolute top-8 w-24 text-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                  <span className="text-[10px] font-medium text-zinc-600 dark:text-zinc-400 bg-white dark:bg-zinc-800 px-1.5 py-0.5 rounded shadow-sm border border-zinc-200 dark:border-zinc-700">
-                    {step.label}
-                  </span>
                 </div>
               </div>
               {index < steps.length - 1 && (
@@ -810,6 +812,16 @@ export const PackageList = () => {
                                     </p>
                                     <p className="font-medium text-rose-600 dark:text-rose-400 mt-1 bg-rose-50 dark:bg-rose-900/20 p-2 rounded border border-rose-100 dark:border-rose-800">
                                       {pkg.cancellationReason}
+                                    </p>
+                                  </div>
+                                )}
+                                {pkg.notes && (
+                                  <div className="col-span-2">
+                                    <p className="text-zinc-500 dark:text-zinc-400">
+                                      Notes
+                                    </p>
+                                    <p className="font-medium text-zinc-900 dark:text-zinc-200 mt-1 bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded border border-zinc-200 dark:border-zinc-700 whitespace-pre-wrap">
+                                      {pkg.notes}
                                     </p>
                                   </div>
                                 )}

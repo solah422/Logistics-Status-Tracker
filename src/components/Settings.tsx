@@ -8,7 +8,7 @@ import { clsx } from 'clsx';
 export const Settings = () => {
   const { 
     statuses, addStatus, 
-    fileHandle, setFileHandle, syncError, setSyncError, importPackages,
+    fileHandle, setFileHandle, syncError, setSyncError, importPackages, forceSync,
     archiveFileHandle, setArchiveFileHandle, archiveError, setArchiveError, triggerArchive,
     statusColors, updateStatusColor,
     customFieldDefs, addCustomFieldDef, removeCustomFieldDef
@@ -60,14 +60,6 @@ export const Settings = () => {
       await set('logistics_sync_handle', handle);
       setFileHandle(handle);
       setSyncError(null);
-      
-      // Read and merge
-      const file = await handle.getFile();
-      const text = await file.text();
-      if (text) {
-        const data = JSON.parse(text);
-        importPackages(data, false);
-      }
     } catch (err: any) {
       if (err.name !== 'AbortError') {
         console.error(err);
@@ -342,12 +334,22 @@ export const Settings = () => {
               </p>
             </div>
           </div>
-          <button
-            onClick={handleSelectSyncFile}
-            className="px-4 py-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors"
-          >
-            {fileHandle ? 'Change File' : 'Select File'}
-          </button>
+          <div className="flex items-center gap-3">
+            {fileHandle && (
+              <button
+                onClick={() => forceSync()}
+                className="px-4 py-2 text-sm font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-100 dark:border-emerald-800 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors"
+              >
+                Force Sync Now
+              </button>
+            )}
+            <button
+              onClick={handleSelectSyncFile}
+              className="px-4 py-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors"
+            >
+              {fileHandle ? 'Change File' : 'Select File'}
+            </button>
+          </div>
         </div>
       </div>
 

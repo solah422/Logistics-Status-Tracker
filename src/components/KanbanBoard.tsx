@@ -76,7 +76,14 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       : packages.find((p) => p.id === overId)?.status;
 
     if (overStatus && activePkg.status !== overStatus) {
-      updatePackage(activeId, { status: overStatus as Status });
+      if (overStatus === 'Info Needed') {
+        const notes = window.prompt('Please enter the information needed or notes for this package:');
+        if (notes !== null) {
+          updatePackage(activeId, { status: overStatus as Status, notes });
+        }
+      } else {
+        updatePackage(activeId, { status: overStatus as Status });
+      }
     }
   };
 
