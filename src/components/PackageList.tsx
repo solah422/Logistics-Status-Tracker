@@ -580,6 +580,11 @@ export const PackageList = () => {
                     Docs
                   </th>
                   <th
+                    className={`px-6 font-medium text-zinc-500 dark:text-zinc-400 text-sm ${tableDensity === "compact" ? "py-2" : "py-4"}`}
+                  >
+                    System
+                  </th>
+                  <th
                     className={`px-6 font-medium text-zinc-500 dark:text-zinc-400 text-sm text-right ${tableDensity === "compact" ? "py-2" : "py-4"}`}
                   >
                     Actions
@@ -614,6 +619,12 @@ export const PackageList = () => {
                             {pkg.rNumberIdNumber && (
                               <p className="text-sm text-zinc-500 dark:text-zinc-400">
                                 {pkg.rNumberIdNumber}
+                              </p>
+                            )}
+                            {pkg.status === 'Info Needed' && pkg.notes && (
+                              <p className="text-xs text-yellow-600 dark:text-yellow-500 mt-1 flex items-start gap-1 max-w-xs">
+                                <AlertCircle size={14} className="shrink-0 mt-0.5" />
+                                <span className="line-clamp-2" title={pkg.notes}>{pkg.notes}</span>
                               </p>
                             )}
                           </div>
@@ -745,6 +756,28 @@ export const PackageList = () => {
                         </button>
                       </td>
                       <td
+                        className={`px-6 ${tableDensity === "compact" ? "py-2" : "py-4"}`}
+                      >
+                        <button
+                          onClick={() =>
+                            updatePackage(pkg.id, {
+                              readySystemStatusUpdated: !pkg.readySystemStatusUpdated,
+                            })
+                          }
+                          className="focus:outline-none hover:scale-110 transition-transform"
+                          title="Toggle Ready System Updated"
+                        >
+                          {pkg.readySystemStatusUpdated ? (
+                            <CheckCircle
+                              className="text-emerald-500"
+                              size={20}
+                            />
+                          ) : (
+                            <AlertCircle className="text-amber-500" size={20} />
+                          )}
+                        </button>
+                      </td>
+                      <td
                         className={`px-6 ${tableDensity === "compact" ? "py-2" : "py-4"} text-right`}
                       >
                         <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -769,7 +802,7 @@ export const PackageList = () => {
                     {/* Expanded Details Row */}
                     {expandedPackage === pkg.id && (
                       <tr className="bg-zinc-50/50 dark:bg-zinc-800/20 border-b border-zinc-100 dark:border-zinc-800">
-                        <td colSpan={5} className="px-6 py-4">
+                        <td colSpan={6} className="px-6 py-4">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-3">
                               <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">

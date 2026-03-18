@@ -108,6 +108,18 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({
             Docs: {pkg.documentsUploaded ? "Yes" : "No"}
           </span>
         </div>
+        <div className="flex items-center gap-1.5">
+          <AlertCircle size={12} />
+          <span
+            className={
+              pkg.readySystemStatusUpdated
+                ? "text-emerald-600 dark:text-emerald-400"
+                : "text-amber-600 dark:text-amber-400"
+            }
+          >
+            System: {pkg.readySystemStatusUpdated ? "Updated" : "Pending"}
+          </span>
+        </div>
       </div>
     </div>
   );

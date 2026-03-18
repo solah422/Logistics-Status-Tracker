@@ -31,7 +31,7 @@ export const Dashboard = () => {
   const completed = activePackages.filter((p) =>
     FINAL_STATUSES.includes(p.status),
   ).length;
-  const pending = activePackages.filter((p) => p.status === "Pending").length;
+  const pending = activePackages.filter((p) => p.status === "Pending" || p.status === "Info Needed").length;
   const actionRequired = activePackages.filter(
     (p) =>
       p.status === "Clarification Required" || p.status === "Customs Processed",
@@ -102,7 +102,7 @@ export const Dashboard = () => {
             <Clock size={24} />
           </div>
           <div>
-            <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">Pending</p>
+            <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">Info Needed / Pending</p>
             <p className="text-3xl font-semibold text-zinc-900 dark:text-zinc-100">{pending}</p>
           </div>
         </div>

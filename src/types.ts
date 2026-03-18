@@ -55,8 +55,8 @@ export interface Package {
 }
 
 export const DEFAULT_STATUSES = [
-  "Pending",
   "Info Needed",
+  "Pending",
   "Customs Checking",
   "Customs Processed",
   "Clarification Required",

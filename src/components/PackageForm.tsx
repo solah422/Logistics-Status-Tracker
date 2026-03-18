@@ -16,7 +16,7 @@ export const PackageForm = ({ initialData, onClose }: PackageFormProps) => {
     rNumberIdNumber: '',
     dateSubmitted: '',
     dateReleased: '',
-    status: 'Pending',
+    status: 'Info Needed',
     priority: 'medium',
     documentsUploaded: false,
     readySystemStatusUpdated: false,
@@ -169,7 +169,7 @@ export const PackageForm = ({ initialData, onClose }: PackageFormProps) => {
           <select
             name="status"
             required
-            value={formData.status || 'Pending'}
+            value={formData.status || 'Info Needed'}
             onChange={handleChange}
             className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all dark:text-zinc-100"
           >

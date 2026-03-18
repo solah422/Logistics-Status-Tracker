@@ -19,7 +19,7 @@ export const ImportExport = () => {
         rNumberIdNumber: 'R123456789',
         dateSubmitted: '2023-10-27',
         dateReleased: '',
-        status: 'Pending',
+        status: 'Info Needed',
         documentsUploaded: 'false',
         brokerFormStatus: '',
         expectedDutyAmount: '',
@@ -52,7 +52,7 @@ export const ImportExport = () => {
             rNumberIdNumber: row.rNumberIdNumber || '',
             dateSubmitted: row.dateSubmitted || '',
             dateReleased: row.dateReleased || '',
-            status: row.status || 'Pending',
+            status: row.status || 'Info Needed',
             documentsUploaded: String(row.documentsUploaded).toLowerCase() === 'true',
             brokerFormStatus: row.brokerFormStatus || '',
             expectedDutyAmount: row.expectedDutyAmount ? Number(row.expectedDutyAmount) : undefined,
@@ -60,7 +60,7 @@ export const ImportExport = () => {
             cancellationReason: row.cancellationReason || '',
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
-            history: [{ status: row.status || 'Pending', timestamp: new Date().toISOString() }]
+            history: [{ status: row.status || 'Info Needed', timestamp: new Date().toISOString() }]
           }));
 
           importPackages(newPackages, false);

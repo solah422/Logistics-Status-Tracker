@@ -133,100 +133,171 @@ export const Reports = () => {
       });
 
       const pageWidth = doc.internal.pageSize.getWidth();
-      let yPos = 20;
+      const pageHeight = doc.internal.pageSize.getHeight();
+      let yPos = 0;
 
-      // Title
+      // --- Header Section ---
+      // Background for header
+      doc.setFillColor(79, 70, 229); // Indigo 600
+      doc.rect(0, 0, pageWidth, 40, "F");
+
+      // Header Text
+      doc.setTextColor(255, 255, 255);
       doc.setFontSize(24);
-      doc.setTextColor(30, 41, 59); // zinc-800
-      doc.text("Logistics Report", 14, yPos);
+      doc.setFont("helvetica", "bold");
+      doc.text("Logistics Operations Report", 14, 22);
       
-      // Date Range
-      yPos += 8;
-      doc.setFontSize(12);
-      doc.setTextColor(100, 116, 139); // zinc-500
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
       const dateRangeText = 
         dateRange === "all" ? "All Time" :
         dateRange === "7days" ? "Last 7 Days" :
         dateRange === "30days" ? "Last 30 Days" : "This Month";
-      doc.text(`Date Range: ${dateRangeText} | Generated: ${new Date().toLocaleDateString()}`, 14, yPos);
+      doc.text(`Period: ${dateRangeText}  |  Generated: ${new Date().toLocaleDateString()}`, 14, 32);
 
-      // Summary Stats
-      yPos += 15;
-      doc.setFontSize(14);
-      doc.setTextColor(30, 41, 59);
-      doc.text("Summary", 14, yPos);
+      yPos = 50;
+
+      // --- Summary Statistics ---
+      doc.setTextColor(30, 41, 59); // Zinc 800
+      doc.setFontSize(16);
+      doc.setFont("helvetica", "bold");
+      doc.text("Executive Summary", 14, yPos);
       
       yPos += 8;
-      autoTable(doc, {
-        startY: yPos,
-        head: [["Total Packages", "Completed Packages", "Avg. Processing Time"]],
-        body: [[
-          summaryStats.total.toString(),
-          summaryStats.completed.toString(),
-          `${summaryStats.avgProcessingTime} days`
-        ]],
-        theme: "grid",
-        headStyles: { fillColor: [79, 70, 229], textColor: 255 },
-        styles: { fontSize: 12, halign: "center" },
-      });
+      
+      // Draw summary boxes
+      const boxWidth = (pageWidth - 36) / 3; // 3 boxes with 4mm spacing
+      
+      // Box 1: Total
+      doc.setFillColor(248, 250, 252); // Slate 50
+      doc.setDrawColor(226, 232, 240); // Slate 200
+      doc.roundedRect(14, yPos, boxWidth, 25, 2, 2, "FD");
+      doc.setFontSize(10);
+      doc.setTextColor(100, 116, 139); // Slate 500
+      doc.text("Total Packages", 14 + boxWidth/2, yPos + 8, { align: "center" });
+      doc.setFontSize(18);
+      doc.setTextColor(15, 23, 42); // Slate 900
+      doc.setFont("helvetica", "bold");
+      doc.text(summaryStats.total.toString(), 14 + boxWidth/2, yPos + 18, { align: "center" });
 
-      yPos = (doc as any).lastAutoTable.finalY + 15;
+      // Box 2: Completed
+      doc.roundedRect(14 + boxWidth + 4, yPos, boxWidth, 25, 2, 2, "FD");
+      doc.setFontSize(10);
+      doc.setTextColor(100, 116, 139);
+      doc.setFont("helvetica", "normal");
+      doc.text("Completed", 14 + boxWidth + 4 + boxWidth/2, yPos + 8, { align: "center" });
+      doc.setFontSize(18);
+      doc.setTextColor(16, 185, 129); // Emerald 500
+      doc.setFont("helvetica", "bold");
+      doc.text(summaryStats.completed.toString(), 14 + boxWidth + 4 + boxWidth/2, yPos + 18, { align: "center" });
 
-      // Status Distribution Table
-      doc.setFontSize(14);
+      // Box 3: Avg Time
+      doc.roundedRect(14 + (boxWidth + 4) * 2, yPos, boxWidth, 25, 2, 2, "FD");
+      doc.setFontSize(10);
+      doc.setTextColor(100, 116, 139);
+      doc.setFont("helvetica", "normal");
+      doc.text("Avg. Processing Time", 14 + (boxWidth + 4) * 2 + boxWidth/2, yPos + 8, { align: "center" });
+      doc.setFontSize(18);
+      doc.setTextColor(79, 70, 229); // Indigo 600
+      doc.setFont("helvetica", "bold");
+      doc.text(`${summaryStats.avgProcessingTime} days`, 14 + (boxWidth + 4) * 2 + boxWidth/2, yPos + 18, { align: "center" });
+
+      yPos += 40;
+
+      // --- Status Distribution ---
       doc.setTextColor(30, 41, 59);
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
       doc.text("Status Distribution", 14, yPos);
       
-      yPos += 8;
+      yPos += 6;
+      
+      // Sort status data by value descending
+      const sortedStatusData = [...statusData].sort((a, b) => b.value - a.value);
+      
       autoTable(doc, {
         startY: yPos,
-        head: [["Status", "Count"]],
-        body: statusData.map(d => [d.name, d.count.toString()]),
-        theme: "striped",
-        headStyles: { fillColor: [79, 70, 229], textColor: 255 },
+        head: [["Status", "Count", "% of Total"]],
+        body: sortedStatusData.map(d => [
+          d.name, 
+          d.value.toString(),
+          summaryStats.total > 0 ? `${((d.value / summaryStats.total) * 100).toFixed(1)}%` : "0%"
+        ]),
+        theme: "plain",
+        headStyles: { fillColor: [241, 245, 249], textColor: [71, 85, 105], fontStyle: 'bold' },
+        bodyStyles: { textColor: [51, 65, 85] },
+        alternateRowStyles: { fillColor: [250, 250, 250] },
+        margin: { left: 14, right: 14 },
       });
 
       yPos = (doc as any).lastAutoTable.finalY + 15;
 
-      // Processing Time Table
-      doc.setFontSize(14);
+      // --- Processing Time Distribution ---
+      // Check if we need a new page
+      if (yPos > pageHeight - 60) {
+        doc.addPage();
+        yPos = 20;
+      }
+
       doc.setTextColor(30, 41, 59);
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
       doc.text("Processing Time (Submitted to Released)", 14, yPos);
       
-      yPos += 8;
+      yPos += 6;
       autoTable(doc, {
         startY: yPos,
         head: [["Duration", "Count"]],
         body: timelineData.map(d => [d.name, d.value.toString()]),
-        theme: "striped",
-        headStyles: { fillColor: [79, 70, 229], textColor: 255 },
+        theme: "plain",
+        headStyles: { fillColor: [241, 245, 249], textColor: [71, 85, 105], fontStyle: 'bold' },
+        bodyStyles: { textColor: [51, 65, 85] },
+        alternateRowStyles: { fillColor: [250, 250, 250] },
+        margin: { left: 14, right: 14 },
       });
 
-      yPos = (doc as any).lastAutoTable.finalY + 15;
-
-      // Package Details
+      // --- Package Details ---
       doc.addPage();
       yPos = 20;
+      
+      // Page Header for Details
+      doc.setFillColor(79, 70, 229);
+      doc.rect(0, 0, pageWidth, 20, "F");
+      doc.setTextColor(255, 255, 255);
       doc.setFontSize(14);
-      doc.setTextColor(30, 41, 59);
-      doc.text("Package Details", 14, yPos);
+      doc.setFont("helvetica", "bold");
+      doc.text("Package Details Log", 14, 13);
+      
+      yPos = 30;
 
-      yPos += 8;
       const tableData = filteredPackages.map(pkg => [
         pkg.trackingNumber || "N/A",
+        pkg.rNumberIdNumber || "-",
         pkg.status,
-        pkg.priority || "Medium",
-        pkg.dateSubmitted ? new Date(pkg.dateSubmitted).toLocaleDateString() : "N/A",
-        pkg.dateReleased ? new Date(pkg.dateReleased).toLocaleDateString() : "N/A"
+        pkg.dateSubmitted ? new Date(pkg.dateSubmitted).toLocaleDateString() : "-",
+        pkg.dateReleased ? new Date(pkg.dateReleased).toLocaleDateString() : "-"
       ]);
 
       autoTable(doc, {
         startY: yPos,
-        head: [["Tracking Number", "Status", "Priority", "Submitted", "Released"]],
+        head: [["Tracking Number", "ID Number", "Status", "Submitted", "Released"]],
         body: tableData,
-        theme: "striped",
-        headStyles: { fillColor: [79, 70, 229], textColor: 255 },
-        styles: { fontSize: 9 },
+        theme: "grid",
+        headStyles: { fillColor: [241, 245, 249], textColor: [71, 85, 105], fontStyle: 'bold', lineColor: [226, 232, 240] },
+        bodyStyles: { textColor: [51, 65, 85], lineColor: [226, 232, 240] },
+        styles: { fontSize: 8, cellPadding: 3 },
+        margin: { left: 14, right: 14 },
+        didDrawPage: function (data) {
+          // Footer
+          doc.setFontSize(8);
+          doc.setTextColor(148, 163, 184);
+          doc.text(
+            `Page ${data.pageNumber}`,
+            pageWidth / 2,
+            pageHeight - 10,
+            { align: "center" }
+          );
+        }
       });
 
       doc.save(`logistics-report-${new Date().toISOString().split("T")[0]}.pdf`);
