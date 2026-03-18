@@ -160,17 +160,23 @@ export const ImportExport = () => {
     document.body.removeChild(link);
   };
 
+  const [pendingJsonImport, setPendingJsonImport] = useState<{ data: any, exportDate?: string, version?: number } | null>(null);
+
   const processJsonFile = (file: File) => {
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
         const json = event.target?.result as string;
         const data = JSON.parse(json);
+        
         if (Array.isArray(data)) {
-          importPackages(data, false);
-          setImportStatus({ type: 'success', message: `Successfully merged ${data.length} packages from JSON.` });
+          // Old format
+          setPendingJsonImport({ data });
+        } else if (data.version === 2 && Array.isArray(data.packages)) {
+          // New format
+          setPendingJsonImport({ data: data.packages, exportDate: data.exportDate, version: data.version });
         } else {
-          throw new Error("Invalid JSON format. Expected an array of packages.");
+          throw new Error("Invalid JSON format. Expected an array of packages or a valid export object.");
         }
       } catch (error) {
         setImportStatus({ type: 'error', message: 'Failed to parse JSON file.' });
@@ -178,6 +184,18 @@ export const ImportExport = () => {
       if (jsonInputRef.current) jsonInputRef.current.value = '';
     };
     reader.readAsText(file);
+  };
+
+  const confirmJsonImport = () => {
+    if (pendingJsonImport) {
+      importPackages(pendingJsonImport.data, false);
+      setImportStatus({ type: 'success', message: `Successfully merged ${pendingJsonImport.data.length} packages from JSON.` });
+      setPendingJsonImport(null);
+    }
+  };
+
+  const cancelJsonImport = () => {
+    setPendingJsonImport(null);
   };
 
   const handleJsonImport = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -291,6 +309,37 @@ export const ImportExport = () => {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      ) : pendingJsonImport ? (
+        <div className="bg-white dark:bg-zinc-900 p-6 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-800">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">Confirm Import</h2>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+                You are about to import {pendingJsonImport.data.length} packages.
+                {pendingJsonImport.exportDate && (
+                  <span className="block mt-1 font-medium text-indigo-600 dark:text-indigo-400">
+                    Backup Date: {new Date(pendingJsonImport.exportDate).toLocaleString()}
+                  </span>
+                )}
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={cancelJsonImport}
+                className="px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmJsonImport}
+                className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
+              >
+                <Check size={16} />
+                Confirm Import
+              </button>
             </div>
           </div>
         </div>

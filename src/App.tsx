@@ -12,6 +12,7 @@ import { ImportExport } from './components/ImportExport';
 import { Reports } from './components/Reports';
 import { Settings } from './components/Settings';
 import { DeletedPackages } from './components/DeletedPackages';
+import { ArchiveViewer } from './components/ArchiveViewer';
 import { FirstLaunch } from './components/FirstLaunch';
 
 function AppContent() {
@@ -41,6 +42,8 @@ function AppContent() {
         return <Reports />;
       case 'deleted':
         return <DeletedPackages />;
+      case 'archive':
+        return <ArchiveViewer />;
       case 'settings':
         return <Settings />;
       default:

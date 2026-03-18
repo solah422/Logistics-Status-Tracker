@@ -12,7 +12,8 @@ export const Settings = () => {
     archiveFileHandle, setArchiveFileHandle, archiveError, setArchiveError, triggerArchive,
     statusColors, updateStatusColor,
     customFieldDefs, addCustomFieldDef, removeCustomFieldDef,
-    tags, addTag, removeTag, updateTag
+    tags, addTag, removeTag, updateTag,
+    updateAvailable, checkUpdate
   } = usePackages();
   
   const [newStatus, setNewStatus] = useState('');
@@ -31,29 +32,13 @@ export const Settings = () => {
   const [newFieldOptions, setNewFieldOptions] = useState('');
 
   const APP_VERSION = '5.1.2';
-  const [latestVersion, setLatestVersion] = useState<string | null>(null);
   const [checkingUpdate, setCheckingUpdate] = useState(false);
-  const [updateError, setUpdateError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const checkUpdate = async () => {
-      setCheckingUpdate(true);
-      try {
-        const response = await fetch('https://api.github.com/repos/solah422/Logistics-Status-Tracker/releases/latest');
-        if (response.ok) {
-          const data = await response.json();
-          setLatestVersion(data.tag_name.replace('v', ''));
-        } else {
-          setUpdateError('Failed to fetch latest version');
-        }
-      } catch (error) {
-        setUpdateError('Error checking for updates');
-      } finally {
-        setCheckingUpdate(false);
-      }
-    };
-    checkUpdate();
-  }, []);
+  const handleManualCheckUpdate = async () => {
+    setCheckingUpdate(true);
+    await checkUpdate(true);
+    setCheckingUpdate(false);
+  };
 
   const handleAddStatus = (e: React.FormEvent) => {
     e.preventDefault();
@@ -609,24 +594,27 @@ export const Settings = () => {
               Latest Version: 
               {checkingUpdate ? (
                 <span className="text-zinc-500 italic text-xs">Checking...</span>
-              ) : updateError ? (
-                <span className="text-rose-500 text-xs">{updateError}</span>
-              ) : latestVersion ? (
-                <span className={`font-mono px-2 py-0.5 rounded text-xs ${
-                  latestVersion === APP_VERSION 
-                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400' 
-                    : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
-                }`}>
-                  {latestVersion}
+              ) : updateAvailable ? (
+                <span className="font-mono px-2 py-0.5 rounded text-xs bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+                  {updateAvailable}
                 </span>
               ) : (
-                <span className="text-zinc-500 text-xs">Unknown</span>
+                <span className="font-mono px-2 py-0.5 rounded text-xs bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">
+                  {APP_VERSION}
+                </span>
               )}
             </div>
           </div>
           
           <div className="flex items-center gap-3">
-            {latestVersion && latestVersion !== APP_VERSION && (
+            <button
+              onClick={handleManualCheckUpdate}
+              disabled={checkingUpdate}
+              className="px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-700/50 transition-colors disabled:opacity-50"
+            >
+              Check for Updates
+            </button>
+            {updateAvailable && (
               <span className="text-xs font-medium text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded-full border border-amber-200 dark:border-amber-800">
                 Update Available
               </span>

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { PackageSearch, LayoutDashboard, Settings, FileSpreadsheet, BarChart3, Menu, X, Trash2, ChevronLeft, ChevronRight, CheckCircle2, AlertCircle, Info, Sun, Moon, Monitor, Cloud } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { PackageSearch, LayoutDashboard, Settings, FileSpreadsheet, BarChart3, Menu, X, Trash2, ChevronLeft, ChevronRight, CheckCircle2, AlertCircle, Info, Sun, Moon, Monitor, Cloud, Search, WifiOff, Archive } from 'lucide-react';
 import { clsx } from 'clsx';
 import { usePackages } from '../store/PackageContext';
+import { CommandPalette } from './CommandPalette';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -11,13 +12,26 @@ interface LayoutProps {
 
 export const Layout = ({ children, activeTab, setActiveTab }: LayoutProps) => {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const { sidebarCollapsed, setSidebarCollapsed, toasts, removeToast, theme, setTheme, fileHandle, forceSync } = usePackages();
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const { sidebarCollapsed, setSidebarCollapsed, toasts, removeToast, theme, setTheme, fileHandle, forceSync, isOffline, hasPendingChanges } = usePackages();
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setCommandPaletteOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'packages', label: 'Packages', icon: PackageSearch },
     { id: 'import-export', label: 'Import / Export', icon: FileSpreadsheet },
     { id: 'reports', label: 'Reports', icon: BarChart3 },
+    { id: 'archive', label: 'Archive', icon: Archive },
     { id: 'deleted', label: 'Deleted Items', icon: Trash2 },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
@@ -97,6 +111,22 @@ export const Layout = ({ children, activeTab, setActiveTab }: LayoutProps) => {
             {navItems.find(i => i.id === activeTab)?.label}
           </h1>
           <div className="ml-auto flex items-center gap-2">
+            {isOffline && (
+              <div className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-full mr-2">
+                <WifiOff size={14} />
+                <span className="hidden sm:inline">Offline</span>
+                {hasPendingChanges && <span className="w-1.5 h-1.5 rounded-full bg-amber-500 ml-1" title="Pending changes"></span>}
+              </div>
+            )}
+            <button
+              onClick={() => setCommandPaletteOpen(true)}
+              className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700/80 transition-colors mr-2"
+              title="Search (Ctrl+K)"
+            >
+              <Search size={16} />
+              <span className="hidden sm:inline">Search...</span>
+              <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-xs bg-zinc-200 dark:bg-zinc-700 rounded font-sans">⌘K</kbd>
+            </button>
             {fileHandle && (
               <button
                 onClick={() => forceSync()}
@@ -119,6 +149,15 @@ export const Layout = ({ children, activeTab, setActiveTab }: LayoutProps) => {
         <div className="flex-1 overflow-hidden print:overflow-visible flex flex-col">
           {children}
         </div>
+
+        <CommandPalette 
+          isOpen={commandPaletteOpen} 
+          onClose={() => setCommandPaletteOpen(false)} 
+          onSelectPackage={(id) => {
+            setActiveTab('packages');
+            window.location.hash = `#package-${id}`;
+          }} 
+        />
 
         {/* Toast Container */}
         <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none print:hidden">

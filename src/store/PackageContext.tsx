@@ -64,6 +64,11 @@ interface PackageContextType {
   toasts: Toast[];
   addToast: (message: string, type: 'success' | 'error' | 'info') => void;
   removeToast: (id: string) => void;
+  updateAvailable: string | null;
+  setUpdateAvailable: (version: string | null) => void;
+  checkUpdate: (force?: boolean) => Promise<void>;
+  isOffline: boolean;
+  hasPendingChanges: boolean;
 }
 
 const PackageContext = createContext<PackageContextType | undefined>(undefined);
@@ -126,6 +131,68 @@ export const PackageProvider = ({ children }: { children: ReactNode }) => {
   
   const [archiveFileHandle, setArchiveFileHandle] = useState<any>(null);
   const [archiveError, setArchiveError] = useState<string | null>(null);
+  const [archivedPackages, setArchivedPackages] = useState<Package[]>([]);
+
+  useEffect(() => {
+    const loadArchive = async () => {
+      if (!archiveFileHandle) {
+        setArchivedPackages([]);
+        return;
+      }
+      try {
+        const permission = await archiveFileHandle.queryPermission({ mode: 'read' });
+        if (permission === 'granted') {
+          const file = await archiveFileHandle.getFile();
+          const text = await file.text();
+          if (text) {
+            setArchivedPackages(JSON.parse(text));
+          }
+        }
+      } catch (e) {
+        console.error('Failed to load archive file:', e);
+      }
+    };
+    loadArchive();
+  }, [archiveFileHandle]);
+
+  const [updateAvailable, setUpdateAvailable] = useState<string | null>(null);
+  const APP_VERSION = '5.1.2';
+
+  const checkUpdate = async (force: boolean = false) => {
+    try {
+      const lastChecked = localStorage.getItem('logistics_last_update_check');
+      const now = Date.now();
+      
+      if (force || !lastChecked || now - parseInt(lastChecked, 10) > 72 * 60 * 60 * 1000) {
+        const response = await fetch('https://api.github.com/repos/solah422/Logistics-Status-Tracker/releases/latest');
+        if (response.ok) {
+          const data = await response.json();
+          const latestVersion = data.tag_name.replace('v', '');
+          if (latestVersion !== APP_VERSION) {
+            setUpdateAvailable(latestVersion);
+            if (force) {
+              addToast(`Update available: v${latestVersion}`, 'info');
+            }
+          } else if (force) {
+            addToast('You are on the latest version.', 'success');
+          }
+        } else if (force) {
+          addToast('Failed to check for updates.', 'error');
+        }
+        localStorage.setItem('logistics_last_update_check', now.toString());
+      }
+    } catch (error) {
+      console.error('Failed to check for updates:', error);
+      if (force) {
+        addToast('Error checking for updates.', 'error');
+      }
+    }
+  };
+
+  // Check for updates on load
+  useEffect(() => {
+    checkUpdate();
+  }, []);
 
   // Simulate initial load
   useEffect(() => {
@@ -335,7 +402,10 @@ export const PackageProvider = ({ children }: { children: ReactNode }) => {
         if (all) return true;
         const lastUpdated = new Date(p.updatedAt).getTime();
         return now - lastUpdated > oneDay;
-      });
+      }).map(p => ({
+        ...p,
+        archivedAt: p.archivedAt || new Date().toISOString()
+      }));
       
       if (packagesToArchive.length === 0) {
         return; // Nothing to archive
@@ -348,6 +418,7 @@ export const PackageProvider = ({ children }: { children: ReactNode }) => {
       await writable.close();
       
       setArchiveError(null);
+      setArchivedPackages(newArchive);
 
       // Remove archived packages from main list
       const archivedIds = new Set(packagesToArchive.map(p => p.id));
@@ -404,6 +475,28 @@ export const PackageProvider = ({ children }: { children: ReactNode }) => {
     return () => clearInterval(interval);
   }, [packages, archiveFileHandle]);
 
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [hasPendingChanges, setHasPendingChanges] = useState(false);
+
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOffline(false);
+      if (hasPendingChanges && fileHandle) {
+        forceSync();
+        setHasPendingChanges(false);
+      }
+    };
+    const handleOffline = () => setIsOffline(true);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [hasPendingChanges, fileHandle]);
+
   const initialSyncDone = React.useRef(false);
 
   // Sync to file and localStorage
@@ -412,6 +505,10 @@ export const PackageProvider = ({ children }: { children: ReactNode }) => {
     
     const syncToFile = async () => {
       if (fileHandle) {
+        if (isOffline) {
+          setHasPendingChanges(true);
+          return;
+        }
         const isStartup = !initialSyncDone.current;
         initialSyncDone.current = true;
         await performMerge(fileHandle, packages, isStartup, !isStartup);
@@ -419,7 +516,7 @@ export const PackageProvider = ({ children }: { children: ReactNode }) => {
     };
     
     syncToFile();
-  }, [packages, fileHandle]);
+  }, [packages, fileHandle, isOffline]);
 
   useEffect(() => {
     localStorage.setItem('logistics_statuses', JSON.stringify(statuses));
@@ -455,7 +552,6 @@ export const PackageProvider = ({ children }: { children: ReactNode }) => {
 
   const activePackages = packages.filter(p => !p.deletedAt && !p.archivedAt);
   const deletedPackages = packages.filter(p => p.deletedAt);
-  const archivedPackages = packages.filter(p => p.archivedAt && !p.deletedAt);
 
   const addToast = (message: string, type: 'success' | 'error' | 'info') => {
     const id = crypto.randomUUID();
@@ -636,11 +732,29 @@ export const PackageProvider = ({ children }: { children: ReactNode }) => {
     addToast(`Imported ${newPackages.length} packages`, 'success');
   };
 
+  const [snapshots, setSnapshots] = useState<{timestamp: string, packages: Package[]}[]>(() => {
+    const saved = localStorage.getItem('logistics_snapshots');
+    return saved ? JSON.parse(saved) : [];
+  });
+
   const exportPackages = (selectedIds?: string[]) => {
     const toExport = selectedIds && selectedIds.length > 0
       ? packages.filter(p => selectedIds.includes(p.id))
       : packages;
-    return JSON.stringify(toExport, null, 2);
+      
+    // Create new snapshot
+    const newSnapshot = { timestamp: new Date().toISOString(), packages: toExport };
+    const newSnapshots = [newSnapshot, ...snapshots].slice(0, 5);
+    setSnapshots(newSnapshots);
+    localStorage.setItem('logistics_snapshots', JSON.stringify(newSnapshots));
+
+    const exportData = {
+      version: 2,
+      exportDate: new Date().toISOString(),
+      packages: toExport,
+      snapshots: newSnapshots
+    };
+    return JSON.stringify(exportData, null, 2);
   };
 
   return (
@@ -657,7 +771,9 @@ export const PackageProvider = ({ children }: { children: ReactNode }) => {
       theme, setTheme,
       sidebarCollapsed, setSidebarCollapsed,
       tableDensity, setTableDensity,
-      toasts, addToast, removeToast
+      toasts, addToast, removeToast,
+      updateAvailable, setUpdateAvailable, checkUpdate,
+      isOffline, hasPendingChanges
     }}>
       {children}
     </PackageContext.Provider>

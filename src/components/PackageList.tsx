@@ -24,7 +24,9 @@ import {
   List as ListIcon,
   Package as PackageIcon,
   Columns,
+  Download,
 } from "lucide-react";
+import Papa from "papaparse";
 
 export const PackageList = () => {
   const {
@@ -39,6 +41,7 @@ export const PackageList = () => {
     setTableDensity,
     isLoading,
     tags,
+    customFieldDefs,
   } = usePackages();
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -75,6 +78,29 @@ export const PackageList = () => {
     y: number;
     pkg: Package | null;
   } | null>(null);
+
+  React.useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (hash.startsWith('#package-')) {
+        const id = hash.replace('#package-', '');
+        const pkg = activePackages.find(p => p.id === id);
+        if (pkg) {
+          setEditingPackage(pkg);
+          setIsFormOpen(true);
+          // Clear hash so it can be triggered again
+          window.history.replaceState(null, '', window.location.pathname);
+        }
+      }
+    };
+
+    // Check on mount
+    handleHashChange();
+
+    // Listen for changes
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [activePackages]);
 
   const handleContextMenu = (e: React.MouseEvent, pkg: Package) => {
     e.preventDefault();
@@ -124,10 +150,21 @@ export const PackageList = () => {
 
         return matchesSearch && matchesStatus && matchesDocs && matchesDate;
       })
-      .sort(
-        (a, b) =>
-          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
-      );
+      .sort((a, b) => {
+        const hasActiveFilter =
+          searchTerm !== "" ||
+          statusFilter !== "all" ||
+          hasDocsFilter !== "all" ||
+          (dateRange.start && dateRange.end);
+
+        if (hasActiveFilter) {
+          return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+        }
+        
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : new Date(a.updatedAt).getTime();
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : new Date(b.updatedAt).getTime();
+        return dateB - dateA;
+      });
   }, [activePackages, searchTerm, statusFilter, hasDocsFilter, dateRange]);
 
   // Pagination logic
@@ -253,6 +290,39 @@ export const PackageList = () => {
       setDateRange({ start: "", end: "" });
     }
     setShowFilters(true);
+  };
+
+  const handleExportCsv = () => {
+    const dataToExport = filteredPackages.map(pkg => ({
+      'Tracking Number': pkg.trackingNumber,
+      'R Number / ID Number': pkg.rNumberIdNumber || '',
+      'Date Submitted': pkg.dateSubmitted || '',
+      'Date Released': pkg.dateReleased || '',
+      'Status': pkg.status,
+      'Priority': pkg.priority || '',
+      'Documents Uploaded': pkg.documentsUploaded ? 'Yes' : 'No',
+      'Ready System Updated': pkg.readySystemStatusUpdated ? 'Yes' : 'No',
+      'Broker Form Status': pkg.brokerFormStatus || '',
+      'Expected Duty Amount': pkg.expectedDutyAmount || '',
+      'Clarification Details': pkg.clarificationDetails || '',
+      'Cancellation Reason': pkg.cancellationReason || '',
+      'Notes': pkg.notes || '',
+      ...Object.entries(pkg.customFields || {}).reduce((acc, [key, val]) => {
+        const def = customFieldDefs.find(d => d.id === key);
+        return {...acc, [`Custom: ${def ? def.name : key}`]: val};
+      }, {})
+    }));
+
+    const csv = Papa.unparse(dataToExport);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `logistics_export_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   // Progress Stepper Component
@@ -399,6 +469,15 @@ export const PackageList = () => {
               <Columns size={18} />
             </button>
           </div>
+
+          <button
+            onClick={handleExportCsv}
+            className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors font-medium text-sm shadow-sm"
+            title="Export filtered data to CSV"
+          >
+            <Download size={18} />
+            <span className="hidden sm:inline">Export</span>
+          </button>
 
           <button
             onClick={() => {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Package, Status, Tag } from '../types';
 import { usePackages } from '../store/PackageContext';
-import { MessageSquarePlus, ChevronDown, ChevronUp } from 'lucide-react';
+import { MessageSquarePlus, ChevronDown, ChevronUp, AlertCircle } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import Select from 'react-select';
@@ -34,6 +34,7 @@ export const PackageForm = ({ initialData, onClose }: PackageFormProps) => {
 
   const [showNotes, setShowNotes] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [duplicateWarning, setDuplicateWarning] = useState<{ type: 'tracking' | 'rNumber', value: string } | null>(null);
 
   useEffect(() => {
     if (initialData) {
@@ -86,7 +87,9 @@ export const PackageForm = ({ initialData, onClose }: PackageFormProps) => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const { activePackages } = usePackages();
+
+  const handleInitialSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validation
@@ -106,6 +109,32 @@ export const PackageForm = ({ initialData, onClose }: PackageFormProps) => {
       }
     }
 
+    // Duplicate Detection
+    if (!initialData) {
+      const tracking = formData.trackingNumber?.trim().toLowerCase();
+      const rNumber = formData.rNumberIdNumber?.trim().toLowerCase();
+      
+      if (tracking) {
+        const hasDuplicateTracking = activePackages.some(p => p.trackingNumber.toLowerCase() === tracking);
+        if (hasDuplicateTracking) {
+          setDuplicateWarning({ type: 'tracking', value: formData.trackingNumber! });
+          return;
+        }
+      }
+      
+      if (rNumber && rNumber.startsWith('r')) {
+        const hasDuplicateRNumber = activePackages.some(p => p.rNumberIdNumber?.toLowerCase() === rNumber);
+        if (hasDuplicateRNumber) {
+          setDuplicateWarning({ type: 'rNumber', value: formData.rNumberIdNumber! });
+          return;
+        }
+      }
+    }
+
+    submitForm();
+  };
+
+  const submitForm = () => {
     if (initialData?.id) {
       updatePackage(initialData.id, formData);
     } else {
@@ -116,8 +145,41 @@ export const PackageForm = ({ initialData, onClose }: PackageFormProps) => {
 
   const currentStatus = formData.status;
 
+  if (duplicateWarning) {
+    return (
+      <div className="p-6 text-center">
+        <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-full flex items-center justify-center mx-auto mb-4">
+          <AlertCircle size={32} />
+        </div>
+        <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Potential Duplicate Detected</h3>
+        <p className="text-zinc-600 dark:text-zinc-400 mb-6">
+          A package with the {duplicateWarning.type === 'tracking' ? 'Tracking Number' : 'R Number'} <span className="font-semibold text-zinc-900 dark:text-zinc-100">{duplicateWarning.value}</span> already exists in the system. Are you sure you want to save this entry?
+        </p>
+        <div className="flex justify-center gap-3">
+          <button
+            type="button"
+            onClick={() => setDuplicateWarning(null)}
+            className="px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+          >
+            Go Back & Edit
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setDuplicateWarning(null);
+              submitForm();
+            }}
+            className="px-4 py-2 text-sm font-medium text-white bg-amber-600 rounded-lg hover:bg-amber-700 transition-colors"
+          >
+            Save Anyway
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleInitialSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Identifiers */}
         <div className="space-y-2">
@@ -213,38 +275,74 @@ export const PackageForm = ({ initialData, onClose }: PackageFormProps) => {
             className="react-select-container"
             classNamePrefix="react-select"
             styles={{
-              control: (base) => ({
-                ...base,
-                backgroundColor: 'transparent',
-                borderColor: '#d4d4d8', // zinc-300
-                borderRadius: '0.5rem',
-                padding: '2px',
-                boxShadow: 'none',
-                '&:hover': {
-                  borderColor: '#a1a1aa' // zinc-400
-                }
-              }),
-              menu: (base) => ({
-                ...base,
-                zIndex: 50,
-                backgroundColor: '#ffffff',
-              }),
-              option: (base, state) => ({
-                ...base,
-                backgroundColor: state.isFocused ? '#f4f4f5' : 'transparent',
-                color: '#18181b',
-                '&:active': {
-                  backgroundColor: '#e4e4e7'
-                }
-              }),
-              multiValue: (base, state) => {
-                const colorClass = state.data.color;
-                // Basic mapping for preview, actual colors applied via classNames in list
+              control: (base) => {
+                const isDark = document.documentElement.classList.contains('dark');
                 return {
                   ...base,
-                  backgroundColor: '#f4f4f5',
+                  backgroundColor: 'transparent',
+                  borderColor: isDark ? '#3f3f46' : '#d4d4d8', // zinc-700 : zinc-300
+                  borderRadius: '0.5rem',
+                  padding: '2px',
+                  boxShadow: 'none',
+                  '&:hover': {
+                    borderColor: isDark ? '#52525b' : '#a1a1aa' // zinc-600 : zinc-400
+                  }
+                };
+              },
+              menu: (base) => {
+                const isDark = document.documentElement.classList.contains('dark');
+                return {
+                  ...base,
+                  zIndex: 50,
+                  backgroundColor: isDark ? '#18181b' : '#ffffff', // zinc-900 : white
+                  border: `1px solid ${isDark ? '#27272a' : '#e4e4e7'}`, // zinc-800 : zinc-200
+                };
+              },
+              option: (base, state) => {
+                const isDark = document.documentElement.classList.contains('dark');
+                return {
+                  ...base,
+                  backgroundColor: state.isFocused 
+                    ? (isDark ? '#27272a' : '#f4f4f5') // zinc-800 : zinc-100
+                    : 'transparent',
+                  color: isDark ? '#f4f4f5' : '#18181b', // zinc-100 : zinc-900
+                  '&:active': {
+                    backgroundColor: isDark ? '#3f3f46' : '#e4e4e7' // zinc-700 : zinc-200
+                  }
+                };
+              },
+              multiValue: (base, state) => {
+                const isDark = document.documentElement.classList.contains('dark');
+                return {
+                  ...base,
+                  backgroundColor: isDark ? '#27272a' : '#f4f4f5', // zinc-800 : zinc-100
                   borderRadius: '9999px',
                   padding: '0 4px',
+                };
+              },
+              multiValueLabel: (base) => {
+                const isDark = document.documentElement.classList.contains('dark');
+                return {
+                  ...base,
+                  color: isDark ? '#f4f4f5' : '#18181b', // zinc-100 : zinc-900
+                };
+              },
+              multiValueRemove: (base) => {
+                const isDark = document.documentElement.classList.contains('dark');
+                return {
+                  ...base,
+                  color: isDark ? '#a1a1aa' : '#71717a', // zinc-400 : zinc-500
+                  '&:hover': {
+                    backgroundColor: isDark ? '#3f3f46' : '#e4e4e7', // zinc-700 : zinc-200
+                    color: isDark ? '#f87171' : '#ef4444', // red-400 : red-500
+                  }
+                };
+              },
+              input: (base) => {
+                const isDark = document.documentElement.classList.contains('dark');
+                return {
+                  ...base,
+                  color: isDark ? '#f4f4f5' : '#18181b', // zinc-100 : zinc-900
                 };
               }
             }}
