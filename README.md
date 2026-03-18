@@ -16,8 +16,9 @@ LogiTrack Pro is a state-of-the-art, fully responsive React application designed
 
 ## ✨ Key Features
 
-### 🧩 Intelligent Dashboard
-Your workspace, optimized for clarity. The dashboard provides a high-level overview of your entire operation at a glance.
+### 🧩 Intelligent Customizable Dashboard
+Your workspace, optimized for clarity. The dashboard provides a high-level overview of your entire operation at a glance, and is fully customizable.
+- **Customizable Widgets**: Pin your favorite charts, key metrics, or saved filter views for a personalized daily overview.
 - **Real-Time Metrics**: Instantly view Total Packages, Completed, Pending, and Action Required shipments.
 - **Visual Analytics**: Beautiful, responsive pie and bar charts powered by `recharts` for status distribution and priority breakdowns.
 - **Activity Feed**: Keep track of the latest updates and movements in your supply chain.
@@ -27,8 +28,16 @@ Your workspace, optimized for clarity. The dashboard provides a high-level overv
 Visualize your freight exactly how you want to.
 - **Data Table View**: High-density, sortable, and filterable list for power users. Includes inline editing and collapsible rows with a visual **Progress Stepper**.
 - **Kanban Board View**: Drag-and-drop cards across status columns for a visual pipeline of your operations.
+- **Color-Coded Custom Tags**: Create and apply visual pill-shaped tags (e.g., "Fragile", "VIP Client", "Delayed") for quick visual scanning.
 - **Context Menus**: Right-click any package to instantly Edit, Copy Tracking, Change Status, or Delete without opening a modal.
 - **Priority Indicators**: Color-coded visual cues (Low, Medium, High, Urgent) ensure critical shipments never slip through the cracks.
+- **Progressive Disclosure Forms**: Clean and intuitive forms that hide optional/advanced fields under an "Advanced Options" toggle.
+- **Visual Date Picker**: Rich, interactive calendar popover for easy date selection.
+
+### 🚀 Enhanced User Experience
+- **Interactive Onboarding Tour**: Guided walkthrough for new users to quickly learn the application's key features.
+- **Rich Empty States**: Beautiful and informative empty state screens with helpful illustrations and clear calls to action.
+- **Collapsible Sidebar**: Maximize your screen real estate with a collapsible navigation sidebar.
 
 ### 📊 Professional Reporting & Analytics
 Turn raw data into strategic decisions.
@@ -37,6 +46,7 @@ Turn raw data into strategic decisions.
 
 ### ☁️ Advanced Sync & Automation
 - **First-Launch Cloud Sync**: Seamlessly link your application to an existing Google Drive JSON database on your very first launch using the File System Access API, ensuring you pick up right where you left off.
+- **Data Import Mapping Tool**: Visually map columns from your CSV spreadsheet to the application's data fields for a seamless import experience.
 - **Automated Archiving**: Keep your active workspace clean with smart auto-archiving for completed or cancelled shipments.
 - **Custom Fields**: Extend the data model on the fly with custom text, number, date, or dropdown fields.
 

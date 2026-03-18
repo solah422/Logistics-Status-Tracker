@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Package, Status } from '../types';
+import { Package, Status, Tag } from '../types';
 import { usePackages } from '../store/PackageContext';
-import { MessageSquarePlus } from 'lucide-react';
+import { MessageSquarePlus, ChevronDown, ChevronUp } from 'lucide-react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import Select from 'react-select';
 
 interface PackageFormProps {
   initialData?: Package;
@@ -9,14 +12,14 @@ interface PackageFormProps {
 }
 
 export const PackageForm = ({ initialData, onClose }: PackageFormProps) => {
-  const { statuses, addPackage, updatePackage, customFieldDefs } = usePackages();
+  const { statuses, addPackage, updatePackage, customFieldDefs, tags } = usePackages();
   
   const [formData, setFormData] = useState<Partial<Package>>({
     trackingNumber: '',
     rNumberIdNumber: '',
     dateSubmitted: '',
     dateReleased: '',
-    status: 'Info Needed',
+    status: 'Pending',
     priority: 'medium',
     documentsUploaded: false,
     readySystemStatusUpdated: false,
@@ -25,10 +28,12 @@ export const PackageForm = ({ initialData, onClose }: PackageFormProps) => {
     clarificationDetails: '',
     cancellationReason: '',
     notes: '',
+    tags: [],
     customFields: {}
   });
 
   const [showNotes, setShowNotes] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   useEffect(() => {
     if (initialData) {
@@ -143,23 +148,25 @@ export const PackageForm = ({ initialData, onClose }: PackageFormProps) => {
         {/* Dates */}
         <div className="space-y-2">
           <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Date Submitted</label>
-          <input
-            type="date"
-            name="dateSubmitted"
-            value={formData.dateSubmitted || ''}
-            onChange={handleChange}
+          <DatePicker
+            selected={formData.dateSubmitted ? new Date(formData.dateSubmitted) : null}
+            onChange={(date: Date | null) => setFormData(prev => ({ ...prev, dateSubmitted: date ? date.toISOString().split('T')[0] : '' }))}
             className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all dark:text-zinc-100"
+            dateFormat="yyyy-MM-dd"
+            isClearable
+            placeholderText="Select date"
           />
         </div>
 
         <div className="space-y-2">
           <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Date Released</label>
-          <input
-            type="date"
-            name="dateReleased"
-            value={formData.dateReleased || ''}
-            onChange={handleChange}
+          <DatePicker
+            selected={formData.dateReleased ? new Date(formData.dateReleased) : null}
+            onChange={(date: Date | null) => setFormData(prev => ({ ...prev, dateReleased: date ? date.toISOString().split('T')[0] : '' }))}
             className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all dark:text-zinc-100"
+            dateFormat="yyyy-MM-dd"
+            isClearable
+            placeholderText="Select date"
           />
         </div>
 
@@ -169,7 +176,7 @@ export const PackageForm = ({ initialData, onClose }: PackageFormProps) => {
           <select
             name="status"
             required
-            value={formData.status || 'Info Needed'}
+            value={formData.status || 'Pending'}
             onChange={handleChange}
             className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all dark:text-zinc-100"
           >
@@ -195,7 +202,71 @@ export const PackageForm = ({ initialData, onClose }: PackageFormProps) => {
           </select>
         </div>
 
-        {/* Conditional Fields based on Status */}
+        {/* Tags */}
+        <div className="space-y-2 md:col-span-2">
+          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Tags</label>
+          <Select
+            isMulti
+            options={tags.map(t => ({ value: t.id, label: t.name, color: t.color }))}
+            value={tags.filter(t => formData.tags?.includes(t.id)).map(t => ({ value: t.id, label: t.name, color: t.color }))}
+            onChange={(selected) => setFormData(prev => ({ ...prev, tags: selected.map(s => s.value) }))}
+            className="react-select-container"
+            classNamePrefix="react-select"
+            styles={{
+              control: (base) => ({
+                ...base,
+                backgroundColor: 'transparent',
+                borderColor: '#d4d4d8', // zinc-300
+                borderRadius: '0.5rem',
+                padding: '2px',
+                boxShadow: 'none',
+                '&:hover': {
+                  borderColor: '#a1a1aa' // zinc-400
+                }
+              }),
+              menu: (base) => ({
+                ...base,
+                zIndex: 50,
+                backgroundColor: '#ffffff',
+              }),
+              option: (base, state) => ({
+                ...base,
+                backgroundColor: state.isFocused ? '#f4f4f5' : 'transparent',
+                color: '#18181b',
+                '&:active': {
+                  backgroundColor: '#e4e4e7'
+                }
+              }),
+              multiValue: (base, state) => {
+                const colorClass = state.data.color;
+                // Basic mapping for preview, actual colors applied via classNames in list
+                return {
+                  ...base,
+                  backgroundColor: '#f4f4f5',
+                  borderRadius: '9999px',
+                  padding: '0 4px',
+                };
+              }
+            }}
+          />
+        </div>
+
+        {/* Advanced Options Toggle */}
+        <div className="md:col-span-2 pt-2">
+          <button
+            type="button"
+            onClick={() => setShowAdvanced(!showAdvanced)}
+            className="flex items-center gap-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+          >
+            {showAdvanced ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            {showAdvanced ? 'Hide Advanced Options' : 'Show Advanced Options'}
+          </button>
+        </div>
+
+        {/* Advanced Fields */}
+        {showAdvanced && (
+          <>
+            {/* Conditional Fields based on Status */}
         {currentStatus === 'Customs Processed' && (
           <div className="space-y-2 md:col-span-2 animate-in fade-in slide-in-from-top-2">
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Expected Duty Amount</label>
@@ -284,7 +355,7 @@ export const PackageForm = ({ initialData, onClose }: PackageFormProps) => {
         </div>
 
         {/* Custom Fields */}
-        {customFieldDefs.length > 0 && (
+        {showAdvanced && customFieldDefs.length > 0 && (
           <div className="md:col-span-2 space-y-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
             <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Custom Fields</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -356,6 +427,8 @@ export const PackageForm = ({ initialData, onClose }: PackageFormProps) => {
               ))}
             </div>
           </div>
+        )}
+          </>
         )}
 
         <div className="flex flex-col gap-3 md:col-span-2 p-4 bg-zinc-50 dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800">

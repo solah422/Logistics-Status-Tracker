@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { usePackages } from '../store/PackageContext';
-import { Plus, Settings2, Trash2, Cloud, CloudOff, AlertCircle, Palette, ListPlus, X } from 'lucide-react';
+import { Plus, Settings2, Trash2, Cloud, CloudOff, AlertCircle, Palette, ListPlus, X, Tags, Edit2, Check } from 'lucide-react';
 import { set } from 'idb-keyval';
-import { CustomFieldType } from '../types';
+import { CustomFieldType, Tag } from '../types';
 import { clsx } from 'clsx';
 
 export const Settings = () => {
@@ -11,10 +11,18 @@ export const Settings = () => {
     fileHandle, setFileHandle, syncError, setSyncError, importPackages, forceSync,
     archiveFileHandle, setArchiveFileHandle, archiveError, setArchiveError, triggerArchive,
     statusColors, updateStatusColor,
-    customFieldDefs, addCustomFieldDef, removeCustomFieldDef
+    customFieldDefs, addCustomFieldDef, removeCustomFieldDef,
+    tags, addTag, removeTag, updateTag
   } = usePackages();
   
   const [newStatus, setNewStatus] = useState('');
+  
+  // Tag Management State
+  const [newTagName, setNewTagName] = useState('');
+  const [newTagColor, setNewTagColor] = useState('bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-300');
+  const [editingTagId, setEditingTagId] = useState<string | null>(null);
+  const [editTagName, setEditTagName] = useState('');
+  const [editTagColor, setEditTagColor] = useState('');
   
   // Custom Field Form State
   const [newFieldName, setNewFieldName] = useState('');
@@ -28,6 +36,42 @@ export const Settings = () => {
       addStatus(newStatus.trim());
       setNewStatus('');
     }
+  };
+
+  const handleAddTag = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTagName.trim()) return;
+
+    addTag({
+      id: crypto.randomUUID(),
+      name: newTagName.trim(),
+      color: newTagColor
+    });
+
+    setNewTagName('');
+    setNewTagColor('bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-300');
+  };
+
+  const startEditTag = (tag: Tag) => {
+    setEditingTagId(tag.id);
+    setEditTagName(tag.name);
+    setEditTagColor(tag.color);
+  };
+
+  const saveEditTag = () => {
+    if (editingTagId && editTagName.trim()) {
+      updateTag(editingTagId, {
+        name: editTagName.trim(),
+        color: editTagColor
+      });
+      setEditingTagId(null);
+    }
+  };
+
+  const cancelEditTag = () => {
+    setEditingTagId(null);
+    setEditTagName('');
+    setEditTagColor('');
   };
 
   const handleAddCustomField = (e: React.FormEvent) => {
@@ -182,6 +226,107 @@ export const Settings = () => {
               </select>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Tag Management */}
+      <div className="bg-white dark:bg-[#1e1e1e] p-6 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-800">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg">
+            <Tags size={24} />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Custom Tags</h2>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">Create and manage color-coded tags for packages.</p>
+          </div>
+        </div>
+
+        <form onSubmit={handleAddTag} className="flex flex-col sm:flex-row gap-3 mb-6 p-4 bg-zinc-50 dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800">
+          <input
+            type="text"
+            value={newTagName}
+            onChange={(e) => setNewTagName(e.target.value)}
+            placeholder="New tag name (e.g., VIP, Fragile)"
+            className="flex-1 px-4 py-2 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all dark:text-zinc-100"
+            required
+          />
+          <select
+            value={newTagColor}
+            onChange={(e) => setNewTagColor(e.target.value)}
+            className="px-4 py-2 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all dark:text-zinc-100"
+          >
+            {colorOptions.map(opt => (
+              <option key={opt.value} value={opt.value} className="bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">{opt.label}</option>
+            ))}
+          </select>
+          <button
+            type="submit"
+            disabled={!newTagName.trim()}
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium shadow-sm"
+          >
+            <Plus size={18} />
+            Add Tag
+          </button>
+        </form>
+
+        <div className="space-y-3">
+          <h3 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Active Tags</h3>
+          {tags.length === 0 ? (
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 italic">No tags defined yet.</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {tags.map(tag => (
+                <div key={tag.id} className="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg">
+                  {editingTagId === tag.id ? (
+                    <div className="flex-1 flex items-center gap-2 mr-2">
+                      <input
+                        type="text"
+                        value={editTagName}
+                        onChange={(e) => setEditTagName(e.target.value)}
+                        className="flex-1 min-w-0 px-2 py-1 text-sm bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:text-zinc-100"
+                        autoFocus
+                      />
+                      <select
+                        value={editTagColor}
+                        onChange={(e) => setEditTagColor(e.target.value)}
+                        className="w-24 px-1 py-1 text-sm bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:text-zinc-100"
+                      >
+                        {colorOptions.map(opt => (
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  ) : (
+                    <span className={clsx("px-2.5 py-1 rounded-full text-xs font-medium", tag.color)}>
+                      {tag.name}
+                    </span>
+                  )}
+                  
+                  <div className="flex items-center gap-1 shrink-0">
+                    {editingTagId === tag.id ? (
+                      <>
+                        <button onClick={saveEditTag} className="p-1.5 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-md transition-colors" title="Save">
+                          <Check size={16} />
+                        </button>
+                        <button onClick={cancelEditTag} className="p-1.5 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-md transition-colors" title="Cancel">
+                          <X size={16} />
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button onClick={() => startEditTag(tag)} className="p-1.5 text-zinc-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-md transition-colors" title="Edit Tag">
+                          <Edit2 size={16} />
+                        </button>
+                        <button onClick={() => removeTag(tag.id)} className="p-1.5 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-md transition-colors" title="Remove Tag">
+                          <Trash2 size={16} />
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

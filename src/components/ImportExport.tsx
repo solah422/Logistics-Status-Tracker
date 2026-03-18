@@ -1,8 +1,24 @@
 import React, { useState, useRef, DragEvent } from 'react';
 import { usePackages } from '../store/PackageContext';
-import { Download, Upload, FileJson, FileSpreadsheet, AlertCircle } from 'lucide-react';
+import { Download, Upload, FileJson, FileSpreadsheet, AlertCircle, ArrowRight, Check } from 'lucide-react';
 import Papa from 'papaparse';
 import { Package } from '../types';
+
+const PACKAGE_FIELDS = [
+  { key: 'trackingNumber', label: 'Tracking Number', required: true },
+  { key: 'rNumberIdNumber', label: 'R Number / ID Number' },
+  { key: 'dateSubmitted', label: 'Date Submitted (YYYY-MM-DD)' },
+  { key: 'dateReleased', label: 'Date Released (YYYY-MM-DD)' },
+  { key: 'status', label: 'Status' },
+  { key: 'priority', label: 'Priority (low, medium, high, urgent)' },
+  { key: 'documentsUploaded', label: 'Documents Uploaded (true/false)' },
+  { key: 'readySystemStatusUpdated', label: 'Ready System Updated (true/false)' },
+  { key: 'brokerFormStatus', label: 'Broker Form Status' },
+  { key: 'expectedDutyAmount', label: 'Expected Duty Amount' },
+  { key: 'clarificationDetails', label: 'Clarification Details' },
+  { key: 'cancellationReason', label: 'Cancellation Reason' },
+  { key: 'notes', label: 'Notes' }
+];
 
 export const ImportExport = () => {
   const { packages, importPackages, exportPackages } = usePackages();
@@ -12,6 +28,12 @@ export const ImportExport = () => {
   const [isDraggingCsv, setIsDraggingCsv] = useState(false);
   const [isDraggingJson, setIsDraggingJson] = useState(false);
 
+  // Mapping Tool State
+  const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
+  const [csvData, setCsvData] = useState<any[]>([]);
+  const [fieldMapping, setFieldMapping] = useState<Record<string, string>>({});
+  const [showMapping, setShowMapping] = useState(false);
+
   const handleDownloadSample = () => {
     const sampleData = [
       {
@@ -19,7 +41,7 @@ export const ImportExport = () => {
         rNumberIdNumber: 'R123456789',
         dateSubmitted: '2023-10-27',
         dateReleased: '',
-        status: 'Info Needed',
+        status: 'Pending',
         documentsUploaded: 'false',
         brokerFormStatus: '',
         expectedDutyAmount: '',
@@ -45,28 +67,29 @@ export const ImportExport = () => {
       header: true,
       skipEmptyLines: true,
       complete: (results) => {
-        try {
-          const newPackages: Package[] = results.data.map((row: any) => ({
-            id: crypto.randomUUID(),
-            trackingNumber: row.trackingNumber || '',
-            rNumberIdNumber: row.rNumberIdNumber || '',
-            dateSubmitted: row.dateSubmitted || '',
-            dateReleased: row.dateReleased || '',
-            status: row.status || 'Info Needed',
-            documentsUploaded: String(row.documentsUploaded).toLowerCase() === 'true',
-            brokerFormStatus: row.brokerFormStatus || '',
-            expectedDutyAmount: row.expectedDutyAmount ? Number(row.expectedDutyAmount) : undefined,
-            clarificationDetails: row.clarificationDetails || '',
-            cancellationReason: row.cancellationReason || '',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            history: [{ status: row.status || 'Info Needed', timestamp: new Date().toISOString() }]
-          }));
-
-          importPackages(newPackages, false);
-          setImportStatus({ type: 'success', message: `Successfully imported ${newPackages.length} packages from CSV.` });
-        } catch (error) {
-          setImportStatus({ type: 'error', message: 'Failed to parse CSV. Please check the format.' });
+        if (results.data && results.data.length > 0) {
+          const headers = Object.keys(results.data[0] as object);
+          setCsvHeaders(headers);
+          setCsvData(results.data);
+          
+          // Auto-map fields with exact or similar names
+          const initialMapping: Record<string, string> = {};
+          PACKAGE_FIELDS.forEach(field => {
+            const exactMatch = headers.find(h => h.toLowerCase() === field.key.toLowerCase());
+            if (exactMatch) {
+              initialMapping[field.key] = exactMatch;
+            } else {
+              // Try to find a partial match
+              const partialMatch = headers.find(h => h.toLowerCase().includes(field.key.toLowerCase().replace(/([A-Z])/g, ' $1').trim()));
+              if (partialMatch) {
+                initialMapping[field.key] = partialMatch;
+              }
+            }
+          });
+          setFieldMapping(initialMapping);
+          setShowMapping(true);
+        } else {
+          setImportStatus({ type: 'error', message: 'CSV file appears to be empty.' });
         }
         if (fileInputRef.current) fileInputRef.current.value = '';
       },
@@ -75,6 +98,48 @@ export const ImportExport = () => {
         if (fileInputRef.current) fileInputRef.current.value = '';
       }
     });
+  };
+
+  const handleConfirmMapping = () => {
+    try {
+      const newPackages: Package[] = csvData.map((row: any) => {
+        const getMappedValue = (key: string) => {
+          const csvCol = fieldMapping[key];
+          return csvCol ? row[csvCol] : undefined;
+        };
+
+        return {
+          id: crypto.randomUUID(),
+          trackingNumber: getMappedValue('trackingNumber') || '',
+          rNumberIdNumber: getMappedValue('rNumberIdNumber') || '',
+          dateSubmitted: getMappedValue('dateSubmitted') || '',
+          dateReleased: getMappedValue('dateReleased') || '',
+          status: getMappedValue('status') || 'Pending',
+          priority: getMappedValue('priority') || 'medium',
+          documentsUploaded: String(getMappedValue('documentsUploaded')).toLowerCase() === 'true',
+          readySystemStatusUpdated: String(getMappedValue('readySystemStatusUpdated')).toLowerCase() === 'true',
+          brokerFormStatus: getMappedValue('brokerFormStatus') || '',
+          expectedDutyAmount: getMappedValue('expectedDutyAmount') ? Number(getMappedValue('expectedDutyAmount')) : undefined,
+          clarificationDetails: getMappedValue('clarificationDetails') || '',
+          cancellationReason: getMappedValue('cancellationReason') || '',
+          notes: getMappedValue('notes') || '',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          history: [{ status: getMappedValue('status') || 'Pending', timestamp: new Date().toISOString() }]
+        };
+      });
+
+      // Filter out rows without tracking numbers if it's required
+      const validPackages = newPackages.filter(p => p.trackingNumber.trim() !== '');
+
+      importPackages(validPackages, false);
+      setImportStatus({ type: 'success', message: `Successfully imported ${validPackages.length} packages from CSV.` });
+      setShowMapping(false);
+      setCsvData([]);
+      setCsvHeaders([]);
+    } catch (error) {
+      setImportStatus({ type: 'error', message: 'Failed to process mapped data.' });
+    }
   };
 
   const handleCsvImport = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -163,6 +228,73 @@ export const ImportExport = () => {
         </div>
       )}
 
+      {showMapping ? (
+        <div className="bg-white dark:bg-zinc-900 p-6 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-800">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">Map CSV Columns</h2>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+                Match the columns from your CSV file to the application's data fields.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowMapping(false)}
+                className="px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmMapping}
+                disabled={!fieldMapping['trackingNumber']}
+                className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                <Check size={16} />
+                Import {csvData.length} Packages
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden">
+            <div className="grid grid-cols-12 gap-4 p-4 border-b border-zinc-200 dark:border-zinc-700 font-medium text-sm text-zinc-500 dark:text-zinc-400 bg-zinc-100/50 dark:bg-zinc-800">
+              <div className="col-span-5">App Field</div>
+              <div className="col-span-2 flex justify-center"></div>
+              <div className="col-span-5">CSV Column</div>
+            </div>
+            <div className="divide-y divide-zinc-200 dark:divide-zinc-700 max-h-[60vh] overflow-y-auto">
+              {PACKAGE_FIELDS.map(field => (
+                <div key={field.key} className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
+                  <div className="col-span-5">
+                    <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                      {field.label}
+                      {field.required && <span className="text-rose-500 ml-1">*</span>}
+                    </span>
+                  </div>
+                  <div className="col-span-2 flex justify-center text-zinc-400">
+                    <ArrowRight size={16} />
+                  </div>
+                  <div className="col-span-5">
+                    <select
+                      value={fieldMapping[field.key] || ''}
+                      onChange={(e) => setFieldMapping(prev => ({ ...prev, [field.key]: e.target.value }))}
+                      className={`w-full px-3 py-2 bg-white dark:bg-zinc-900 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-colors dark:text-zinc-100 ${
+                        field.required && !fieldMapping[field.key] 
+                          ? 'border-rose-300 dark:border-rose-700 focus:border-rose-500' 
+                          : 'border-zinc-300 dark:border-zinc-700 focus:border-indigo-500'
+                      }`}
+                    >
+                      <option value="">-- Ignore this field --</option>
+                      {csvHeaders.map(header => (
+                        <option key={header} value={header}>{header}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* CSV Import Section */}
         <div 
@@ -248,7 +380,8 @@ export const ImportExport = () => {
           </div>
         </div>
       </div>
-    </div>
+      )}
+      </div>
     </div>
   );
 };

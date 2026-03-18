@@ -38,6 +38,7 @@ export const PackageList = () => {
     tableDensity,
     setTableDensity,
     isLoading,
+    tags,
   } = usePackages();
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -620,6 +621,19 @@ export const PackageList = () => {
                               <p className="text-sm text-zinc-500 dark:text-zinc-400">
                                 {pkg.rNumberIdNumber}
                               </p>
+                            )}
+                            {pkg.tags && pkg.tags.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {pkg.tags.map(tagId => {
+                                  const tag = tags.find(t => t.id === tagId);
+                                  if (!tag) return null;
+                                  return (
+                                    <span key={tag.id} className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${tag.color}`}>
+                                      {tag.name}
+                                    </span>
+                                  );
+                                })}
+                              </div>
                             )}
                             {pkg.status === 'Info Needed' && pkg.notes && (
                               <p className="text-xs text-yellow-600 dark:text-yellow-500 mt-1 flex items-start gap-1 max-w-xs">

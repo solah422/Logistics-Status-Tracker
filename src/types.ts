@@ -6,21 +6,31 @@ export interface StatusHistory {
   notes?: string;
 }
 
-export type CustomFieldType = 'text' | 'number' | 'date' | 'checkbox' | 'dropdown';
+export type CustomFieldType = 'text' | 'number' | 'date' | 'checkbox' | 'dropdown' | 'boolean' | 'select';
 
 export interface CustomFieldDef {
   id: string;
   name: string;
   type: CustomFieldType;
   options?: string[]; // For dropdowns
+  required?: boolean;
 }
 
 export interface SavedFilter {
   id: string;
   name: string;
-  statuses: string[];
-  dateRange: { start: string; end: string };
-  missingDocuments: boolean | null;
+  statuses?: string[];
+  dateRange?: { start: string; end: string };
+  missingDocuments?: boolean | null;
+  criteria?: any;
+  filters?: any;
+}
+
+export interface Tag {
+  id: string;
+  name: string;
+  color: string;
+  colorClass?: string;
 }
 
 export interface Package {
@@ -44,6 +54,7 @@ export interface Package {
   readySystemStatusUpdated?: boolean; // New checkbox
   brokerFormStatus?: string; // Manually triggered
   notes?: string; // General notes or Info Needed details
+  tags?: string[]; // Array of tag IDs
   
   customFields?: Record<string, any>; // Dynamic fields
   
@@ -55,8 +66,8 @@ export interface Package {
 }
 
 export const DEFAULT_STATUSES = [
-  "Info Needed",
   "Pending",
+  "Info Needed",
   "Customs Checking",
   "Customs Processed",
   "Clarification Required",

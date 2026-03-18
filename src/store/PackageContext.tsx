@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Package, Status, DEFAULT_STATUSES, CustomFieldDef, SavedFilter, DEFAULT_STATUS_COLORS, FINAL_STATUSES } from '../types';
+import { Package, Status, DEFAULT_STATUSES, CustomFieldDef, SavedFilter, DEFAULT_STATUS_COLORS, FINAL_STATUSES, Tag } from '../types';
 import { get, set } from 'idb-keyval';
 
 export interface Toast {
@@ -47,6 +47,11 @@ interface PackageContextType {
   addSavedFilter: (filter: SavedFilter) => void;
   removeSavedFilter: (id: string) => void;
   
+  tags: Tag[];
+  addTag: (tag: Tag) => void;
+  removeTag: (id: string) => void;
+  updateTag: (id: string, updates: Partial<Tag>) => void;
+  
   theme: 'light' | 'dark' | 'system';
   setTheme: (theme: 'light' | 'dark' | 'system') => void;
   
@@ -88,6 +93,15 @@ export const PackageProvider = ({ children }: { children: ReactNode }) => {
   const [savedFilters, setSavedFilters] = useState<SavedFilter[]>(() => {
     const saved = localStorage.getItem('logistics_saved_filters');
     return saved ? JSON.parse(saved) : [];
+  });
+
+  const [tags, setTags] = useState<Tag[]>(() => {
+    const saved = localStorage.getItem('logistics_tags');
+    return saved ? JSON.parse(saved) : [
+      { id: '1', name: 'Fragile', color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' },
+      { id: '2', name: 'VIP Client', color: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400' },
+      { id: '3', name: 'Delayed', color: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400' }
+    ];
   });
 
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>(() => {
@@ -424,6 +438,10 @@ export const PackageProvider = ({ children }: { children: ReactNode }) => {
   }, [savedFilters]);
 
   useEffect(() => {
+    localStorage.setItem('logistics_tags', JSON.stringify(tags));
+  }, [tags]);
+
+  useEffect(() => {
     localStorage.setItem('logistics_theme', theme);
   }, [theme]);
 
@@ -570,6 +588,27 @@ export const PackageProvider = ({ children }: { children: ReactNode }) => {
     addToast('Filter removed', 'info');
   };
 
+  const addTag = (tag: Tag) => {
+    setTags(prev => [...prev, tag]);
+    addToast('Tag added', 'success');
+  };
+
+  const removeTag = (id: string) => {
+    setTags(prev => prev.filter(t => t.id !== id));
+    // Also remove this tag from all packages
+    setPackages(prev => prev.map(pkg => {
+      if (pkg.tags?.includes(id)) {
+        return { ...pkg, tags: pkg.tags.filter(tId => tId !== id) };
+      }
+      return pkg;
+    }));
+    addToast('Tag removed', 'info');
+  };
+
+  const updateTag = (id: string, updates: Partial<Tag>) => {
+    setTags(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
+  };
+
   const importPackages = (newPackages: Package[], overwrite = false) => {
     if (overwrite) {
       setPackages(newPackages);
@@ -614,6 +653,7 @@ export const PackageProvider = ({ children }: { children: ReactNode }) => {
       customFieldDefs, addCustomFieldDef, removeCustomFieldDef,
       statusColors, updateStatusColor,
       savedFilters, addSavedFilter, removeSavedFilter,
+      tags, addTag, removeTag, updateTag,
       theme, setTheme,
       sidebarCollapsed, setSidebarCollapsed,
       tableDensity, setTableDensity,
