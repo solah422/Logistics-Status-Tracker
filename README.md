@@ -47,8 +47,9 @@ Turn raw data into strategic decisions.
 ### ☁️ Advanced Sync & Automation
 - **First-Launch Cloud Sync**: Seamlessly link your application to an existing Google Drive JSON database on your very first launch using the File System Access API, ensuring you pick up right where you left off.
 - **Data Import Mapping Tool**: Visually map columns from your CSV spreadsheet to the application's data fields for a seamless import experience.
-- **Automated Archiving**: Keep your active workspace clean with smart auto-archiving for completed or cancelled shipments.
-- **Custom Fields**: Extend the data model on the fly with custom text, number, date, or dropdown fields.
+- **Automated Archiving**: Keep your active workspace clean with smart auto-archiving for completed or cancelled shipments. Includes **Archive Timestamps** to track exactly when a package was archived, and **Real-Time UI Sync** to instantly reflect archived items without refreshing.
+- **Custom Fields**: Extend the data model on the fly with custom text, number, date, or dropdown fields. **CSV Exports** now intelligently map these custom fields to their human-readable names instead of internal IDs.
+- **Duplicate Detection**: Smart UI warnings alert you if you attempt to create a package with a Tracking Number or R Number that already exists in the system, preventing data entry errors.
 
 ---
 
