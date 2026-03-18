@@ -257,7 +257,7 @@ export const PackageForm = ({ initialData, onClose }: PackageFormProps) => {
 
         {/* Notes Field */}
         <div className="md:col-span-2">
-          {!showNotes ? (
+          {!showNotes && currentStatus !== 'Info Needed' ? (
             <button
               type="button"
               onClick={() => setShowNotes(true)}

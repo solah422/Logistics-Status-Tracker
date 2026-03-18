@@ -120,8 +120,9 @@ export const Settings = () => {
   ];
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6 pb-12">
-      {/* Status Management */}
+    <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
+      <div className="max-w-3xl mx-auto space-y-6 pb-12">
+        {/* Status Management */}
       <div className="bg-white dark:bg-[#1e1e1e] p-6 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-800">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded-lg">
@@ -318,7 +319,7 @@ export const Settings = () => {
           </div>
         )}
 
-        <div className="flex items-center justify-between p-4 bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-lg">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-lg gap-4">
           <div className="flex items-center gap-3">
             {fileHandle ? (
               <Cloud className="text-emerald-500 dark:text-emerald-400" size={20} />
@@ -334,18 +335,18 @@ export const Settings = () => {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
             {fileHandle && (
               <button
                 onClick={() => forceSync()}
-                className="px-4 py-2 text-sm font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-100 dark:border-emerald-800 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors"
+                className="flex-1 sm:flex-none px-4 py-2 text-sm font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-100 dark:border-emerald-800 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors whitespace-nowrap"
               >
                 Force Sync Now
               </button>
             )}
             <button
               onClick={handleSelectSyncFile}
-              className="px-4 py-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors"
+              className="flex-1 sm:flex-none px-4 py-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors whitespace-nowrap"
             >
               {fileHandle ? 'Change File' : 'Select File'}
             </button>
@@ -416,6 +417,7 @@ export const Settings = () => {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 };

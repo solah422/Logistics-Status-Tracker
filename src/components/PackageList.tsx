@@ -3,6 +3,7 @@ import { usePackages } from "../store/PackageContext";
 import { Package, Status, FINAL_STATUSES } from "../types";
 import { PackageForm } from "./PackageForm";
 import { KanbanBoard } from "./KanbanBoard";
+import { NotesModal } from "./NotesModal";
 import {
   Search,
   Plus,
@@ -155,14 +156,23 @@ export const PackageList = () => {
     setExpandedPackage(expandedPackage === id ? null : id);
   };
 
+  // Notes Modal State
+  const [notesModalOpen, setNotesModalOpen] = useState(false);
+  const [notesModalData, setNotesModalData] = useState<{ id: string; status: Status } | null>(null);
+
   const handleStatusChange = (id: string, newStatus: Status) => {
     if (newStatus === 'Info Needed') {
-      const notes = window.prompt('Please enter the information needed or notes for this package:');
-      if (notes !== null) {
-        updatePackage(id, { status: newStatus, notes });
-      }
+      setNotesModalData({ id, status: newStatus });
+      setNotesModalOpen(true);
     } else {
       updatePackage(id, { status: newStatus });
+    }
+  };
+
+  const handleSaveNotes = (notes: string) => {
+    if (notesModalData) {
+      updatePackage(notesModalData.id, { status: notesModalData.status, notes });
+      setNotesModalData(null);
     }
   };
 
@@ -333,9 +343,9 @@ export const PackageList = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="h-full flex flex-col p-4 sm:p-6 lg:p-8">
       {/* Header Actions */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0 mb-6">
         <div className="relative flex-1 max-w-md w-full">
           <Search
             className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400"
@@ -404,7 +414,7 @@ export const PackageList = () => {
 
       {/* Advanced Filters Panel */}
       {showFilters && (
-        <div className="bg-white dark:bg-zinc-900 p-4 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-800 animate-in fade-in slide-in-from-top-2">
+        <div className="bg-white dark:bg-zinc-900 p-4 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-800 animate-in fade-in slide-in-from-top-2 shrink-0 mb-6">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-semibold text-zinc-900 dark:text-zinc-100">
               Advanced Filters
@@ -543,9 +553,9 @@ export const PackageList = () => {
       )}
 
       {/* Package List */}
-      <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+      <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-800 overflow-hidden flex-1 flex flex-col min-h-0">
         {viewMode === "table" ? (
-          <div className="overflow-x-auto">
+          <div className="overflow-auto flex-1">
             <table className="w-full text-left border-collapse">
               <thead className="bg-zinc-50 dark:bg-zinc-800/50 border-b border-zinc-200 dark:border-zinc-800 sticky top-0 z-10">
                 <tr>
@@ -915,15 +925,19 @@ export const PackageList = () => {
             </table>
           </div>
         ) : viewMode === "kanban" ? (
-          <KanbanBoard
-            packages={filteredPackages}
-            onEdit={handleEdit}
-            onDelete={handleDeleteClick}
-          />
+          <div className="overflow-auto flex-1">
+            <KanbanBoard
+              packages={filteredPackages}
+              onEdit={handleEdit}
+              onDelete={handleDeleteClick}
+              onStatusChange={handleStatusChange}
+            />
+          </div>
         ) : (
           /* Mobile/Card View */
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4 bg-zinc-50 dark:bg-zinc-900/50">
-            {paginatedPackages.map((pkg) => (
+          <div className="overflow-auto flex-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4 bg-zinc-50 dark:bg-zinc-900/50">
+              {paginatedPackages.map((pkg) => (
               <div
                 key={pkg.id}
                 className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl p-4 shadow-sm flex flex-col"
@@ -1016,6 +1030,7 @@ export const PackageList = () => {
                 </p>
               </div>
             )}
+          </div>
           </div>
         )}
 
@@ -1182,6 +1197,16 @@ export const PackageList = () => {
           </div>
         </div>
       )}
+
+      {/* Notes Modal */}
+      <NotesModal
+        isOpen={notesModalOpen}
+        onClose={() => {
+          setNotesModalOpen(false);
+          setNotesModalData(null);
+        }}
+        onSave={handleSaveNotes}
+      />
     </div>
   );
 };

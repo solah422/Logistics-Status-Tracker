@@ -47,8 +47,9 @@ export const DeletedPackages = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+    <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
           <input
@@ -160,6 +161,7 @@ export const DeletedPackages = () => {
           </div>
         </div>
       </Modal>
+    </div>
     </div>
   );
 };

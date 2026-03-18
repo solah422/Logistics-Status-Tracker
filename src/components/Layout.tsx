@@ -23,7 +23,7 @@ export const Layout = ({ children, activeTab, setActiveTab }: LayoutProps) => {
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-[#121212] flex transition-colors duration-200">
+    <div className="h-screen overflow-hidden bg-zinc-50 dark:bg-[#121212] flex transition-colors duration-200">
       {/* Mobile sidebar overlay */}
       {mobileSidebarOpen && (
         <div 
@@ -116,7 +116,7 @@ export const Layout = ({ children, activeTab, setActiveTab }: LayoutProps) => {
             </button>
           </div>
         </header>
-        <div className="flex-1 overflow-auto print:overflow-visible p-4 sm:p-6 lg:p-8">
+        <div className="flex-1 overflow-hidden print:overflow-visible flex flex-col">
           {children}
         </div>
 

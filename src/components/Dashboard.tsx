@@ -59,8 +59,9 @@ export const Dashboard = () => {
   }, [activePackages, statuses]);
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
           Dashboard
         </h1>
@@ -268,6 +269,7 @@ export const Dashboard = () => {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 };

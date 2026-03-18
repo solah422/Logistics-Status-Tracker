@@ -25,12 +25,14 @@ interface KanbanBoardProps {
   packages: Package[];
   onEdit: (pkg: Package) => void;
   onDelete: (id: string) => void;
+  onStatusChange: (id: string, newStatus: Status) => void;
 }
 
 export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   packages,
   onEdit,
   onDelete,
+  onStatusChange,
 }) => {
   const { statuses, updatePackage } = usePackages();
   const [activeId, setActiveId] = React.useState<string | null>(null);
@@ -76,14 +78,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       : packages.find((p) => p.id === overId)?.status;
 
     if (overStatus && activePkg.status !== overStatus) {
-      if (overStatus === 'Info Needed') {
-        const notes = window.prompt('Please enter the information needed or notes for this package:');
-        if (notes !== null) {
-          updatePackage(activeId, { status: overStatus as Status, notes });
-        }
-      } else {
-        updatePackage(activeId, { status: overStatus as Status });
-      }
+      onStatusChange(activeId, overStatus as Status);
     }
   };
 

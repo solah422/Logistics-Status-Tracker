@@ -241,8 +241,9 @@ export const Reports = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Controls */}
+    <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
+      <div className="space-y-6">
+        {/* Controls */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-zinc-900 p-4 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-800 print:hidden">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg">
@@ -499,6 +500,7 @@ export const Reports = () => {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 };

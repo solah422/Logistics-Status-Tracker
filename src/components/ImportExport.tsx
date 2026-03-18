@@ -150,8 +150,9 @@ export const ImportExport = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      {importStatus && (
+    <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
+      <div className="space-y-6 max-w-4xl mx-auto">
+        {importStatus && (
         <div className={`p-4 rounded-lg flex items-start gap-3 ${
           importStatus.type === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800' :
           importStatus.type === 'error' ? 'bg-rose-50 text-rose-800 border border-rose-200 dark:bg-rose-900/20 dark:text-rose-400 dark:border-rose-800' :
@@ -247,6 +248,7 @@ export const ImportExport = () => {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 };
