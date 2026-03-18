@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePackages } from '../store/PackageContext';
-import { Plus, Settings2, Trash2, Cloud, CloudOff, AlertCircle, Palette, ListPlus, X, Tags, Edit2, Check } from 'lucide-react';
+import { Plus, Settings2, Trash2, Cloud, CloudOff, AlertCircle, Palette, ListPlus, X, Tags, Edit2, Check, Github } from 'lucide-react';
 import { set } from 'idb-keyval';
 import { CustomFieldType, Tag } from '../types';
 import { clsx } from 'clsx';
@@ -29,6 +29,31 @@ export const Settings = () => {
   const [newFieldType, setNewFieldType] = useState<CustomFieldType>('text');
   const [newFieldRequired, setNewFieldRequired] = useState(false);
   const [newFieldOptions, setNewFieldOptions] = useState('');
+
+  const APP_VERSION = '5.1.2';
+  const [latestVersion, setLatestVersion] = useState<string | null>(null);
+  const [checkingUpdate, setCheckingUpdate] = useState(false);
+  const [updateError, setUpdateError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const checkUpdate = async () => {
+      setCheckingUpdate(true);
+      try {
+        const response = await fetch('https://api.github.com/repos/solah422/Logistics-Status-Tracker/releases/latest');
+        if (response.ok) {
+          const data = await response.json();
+          setLatestVersion(data.tag_name.replace('v', ''));
+        } else {
+          setUpdateError('Failed to fetch latest version');
+        }
+      } catch (error) {
+        setUpdateError('Error checking for updates');
+      } finally {
+        setCheckingUpdate(false);
+      }
+    };
+    checkUpdate();
+  }, []);
 
   const handleAddStatus = (e: React.FormEvent) => {
     e.preventDefault();
@@ -559,6 +584,62 @@ export const Settings = () => {
             >
               {archiveFileHandle ? 'Change File' : 'Select File'}
             </button>
+          </div>
+        </div>
+      </div>
+
+      {/* App Updates */}
+      <div className="bg-white dark:bg-[#1e1e1e] p-6 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-800">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded-lg">
+            <Github size={24} />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">App Updates</h2>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">Check for the latest version of Logistics Status Tracker.</p>
+          </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-lg gap-4">
+          <div className="flex flex-col gap-1">
+            <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+              Current Version: <span className="font-mono bg-zinc-200 dark:bg-zinc-800 px-2 py-0.5 rounded text-xs ml-1">{APP_VERSION}</span>
+            </p>
+            <div className="text-sm text-zinc-600 dark:text-zinc-400 flex items-center gap-2">
+              Latest Version: 
+              {checkingUpdate ? (
+                <span className="text-zinc-500 italic text-xs">Checking...</span>
+              ) : updateError ? (
+                <span className="text-rose-500 text-xs">{updateError}</span>
+              ) : latestVersion ? (
+                <span className={`font-mono px-2 py-0.5 rounded text-xs ${
+                  latestVersion === APP_VERSION 
+                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400' 
+                    : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
+                }`}>
+                  {latestVersion}
+                </span>
+              ) : (
+                <span className="text-zinc-500 text-xs">Unknown</span>
+              )}
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            {latestVersion && latestVersion !== APP_VERSION && (
+              <span className="text-xs font-medium text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded-full border border-amber-200 dark:border-amber-800">
+                Update Available
+              </span>
+            )}
+            <a
+              href="https://github.com/solah422/Logistics-Status-Tracker/releases/latest"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-2 text-sm font-medium text-white bg-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 rounded-lg hover:bg-zinc-800 dark:hover:bg-white/90 transition-colors flex items-center gap-2"
+            >
+              <Github size={16} />
+              View on GitHub
+            </a>
           </div>
         </div>
       </div>
