@@ -10,8 +10,6 @@
 
 LogiTrack Pro is a state-of-the-art, fully responsive React application designed to streamline package tracking, optimize operational workflows, and provide real-time analytics for logistics teams. Built with performance and user experience in mind, it transforms complex supply chain data into actionable, beautifully visualized insights.
 
-![LogiTrack Pro Banner](https://images.unsplash.com/photo-1586528116311-ad8ed7c663c0?auto=format&fit=crop&q=80&w=2000&h=600)
-
 ---
 
 ## ✨ Key Features
@@ -27,7 +25,6 @@ Your workspace, optimized for clarity. The dashboard provides a high-level overv
 ### 📋 Omni-View Package Management
 Visualize your freight exactly how you want to.
 - **Data Table View**: High-density, sortable, and filterable list for power users. Includes inline editing and collapsible rows with a visual **Progress Stepper**.
-- **Kanban Board View**: Drag-and-drop cards across status columns for a visual pipeline of your operations.
 - **Color-Coded Custom Tags**: Create and apply visual pill-shaped tags (e.g., "Fragile", "VIP Client", "Delayed") for quick visual scanning.
 - **Context Menus**: Right-click any package to instantly Edit, Copy Tracking, Change Status, or Delete without opening a modal.
 - **Priority Indicators**: Color-coded visual cues (Low, Medium, High, Urgent) ensure critical shipments never slip through the cracks.
@@ -35,7 +32,6 @@ Visualize your freight exactly how you want to.
 - **Visual Date Picker**: Rich, interactive calendar popover for easy date selection.
 
 ### 🚀 Enhanced User Experience
-- **Interactive Onboarding Tour**: Guided walkthrough for new users to quickly learn the application's key features.
 - **Rich Empty States**: Beautiful and informative empty state screens with helpful illustrations and clear calls to action.
 - **Collapsible Sidebar**: Maximize your screen real estate with a collapsible navigation sidebar.
 
